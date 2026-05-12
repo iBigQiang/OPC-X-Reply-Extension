@@ -1,0 +1,70 @@
+{
+  "manifest_version": 3,
+  "name": "X 推文互动回复器",
+  "version": "2.0.0",
+  "description": "X 推文互动回复器 v2.0：在 X 一次生成 3 条可编辑 KOL 回复候选，手动选择复制或填入，不自动发送。",
+  "icons": {
+    "16": "img/i_16.png",
+    "32": "img/i_32.png",
+    "48": "img/i_48.png",
+    "128": "img/i_128.png"
+  },
+  "permissions": [
+    "storage",
+    "clipboardWrite"
+  ],
+  "host_permissions": [
+    "https://x.com/*",
+    "https://twitter.com/*",
+    "https://api.openai.com/*",
+    "https://oa.api2d.net/*",
+    "https://*/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://x.com/*",
+        "https://twitter.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "X 推文互动回复器",
+    "default_icon": {
+      "16": "img/i_16.png",
+      "32": "img/i_32.png",
+      "48": "img/i_48.png",
+      "128": "img/i_128.png"
+    }
+  },
+  "options_page": "options.html",
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "img/miku_bg.svg",
+        "img/i_16.png",
+        "img/i_32.png",
+        "img/i_48.png",
+        "img/i_128.png",
+        "img/i_256.png",
+        "img/akiii_bg.jpg"
+      ],
+      "matches": [
+        "https://x.com/*",
+        "https://twitter.com/*"
+      ]
+    }
+  ]
+}
