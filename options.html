@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>X 推文互动回复器</title>
+  <style>
+    :root {
+      --bg: #07101f;
+      --panel: rgba(9, 21, 38, .68);
+      --panel-strong: rgba(10, 23, 42, .82);
+      --line: rgba(130, 247, 255, .34);
+      --line-pink: rgba(255, 105, 180, .32);
+      --text: rgba(238, 251, 255, .96);
+      --muted: rgba(214, 231, 242, .72);
+      --cyan: #62f3ff;
+      --pink: #ff72bd;
+      --purple: #9b8cff;
+    }
+    * { box-sizing: border-box; }
+    html { background: transparent; }
+    body {
+      width: auto;
+      min-width: 0;
+      min-height: 100vh;
+      margin: 0;
+      padding: clamp(18px, 3vw, 32px);
+      overflow-x: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        linear-gradient(180deg, rgba(4, 10, 22, .70), rgba(6, 11, 26, .92)),
+        radial-gradient(circle at 15% 5%, rgba(92, 242, 255, .35), transparent 30%),
+        radial-gradient(circle at 92% 18%, rgba(255, 102, 188, .28), transparent 34%),
+        url("img/akiii_bg.jpg") center top / cover no-repeat,
+        #06101d;
+      position: relative;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px),
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px);
+      background-size: 34px 34px;
+      mask-image: linear-gradient(180deg, rgba(0,0,0,.55), transparent 75%);
+    }
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(135deg, rgba(98,243,255,.10), transparent 38%, rgba(255,114,189,.12));
+      mix-blend-mode: screen;
+    }
+    .shell {
+      position: relative;
+      z-index: 1;
+      width: min(720px, 100%);
+      margin: 0 auto;
+    }
+    .hero {
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      padding: 16px;
+      margin-bottom: 13px;
+      background: linear-gradient(135deg, rgba(9,24,46,.72), rgba(18,24,51,.56));
+      box-shadow:
+        0 28px 80px rgba(0,0,0,.34),
+        inset 0 1px 0 rgba(255,255,255,.14),
+        0 0 0 1px rgba(255, 114, 189, .08);
+      backdrop-filter: blur(18px) saturate(1.2);
+    }
+    .topline {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+    }
+    .logo {
+      width: 58px;
+      height: 58px;
+      border-radius: 20px;
+      border: 1px solid rgba(98,243,255,.45);
+      box-shadow: 0 0 26px rgba(98,243,255,.22), inset 0 1px 0 rgba(255,255,255,.18);
+      object-fit: cover;
+    }
+    h1 {
+      margin: 0;
+      font-size: 30px;
+      letter-spacing: .5px;
+      line-height: 1.05;
+      background: linear-gradient(92deg, #73f7ff 0%, #d8e5ff 42%, #ff72bd 82%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 24px rgba(98,243,255,.20);
+      font-weight: 950;
+    }
+    .author {
+      margin-top: 6px;
+      font-size: 13px;
+      color: rgba(238,251,255,.80);
+      font-weight: 800;
+      letter-spacing: .15px;
+    }
+    .author b { color: #fff; }
+    .tagline {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(98,243,255,.25);
+      background: rgba(0, 0, 0, .18);
+      color: rgba(230, 247, 255, .82);
+      font-size: 12px;
+      font-weight: 750;
+    }
+    .tagline::before { content: "✦"; color: var(--pink); }
+    .card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 24px;
+      padding: 15px;
+      margin-bottom: 12px;
+      background: linear-gradient(180deg, rgba(8, 20, 38, .72), rgba(8, 18, 34, .58));
+      border: 1px solid rgba(126, 232, 255, .24);
+      box-shadow:
+        0 18px 46px rgba(0,0,0,.26),
+        inset 0 1px 0 rgba(255,255,255,.10);
+      backdrop-filter: blur(18px) saturate(1.25);
+    }
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 0% 0%, rgba(98,243,255,.13), transparent 32%),
+        radial-gradient(circle at 100% 0%, rgba(255,114,189,.13), transparent 34%);
+    }
+    .card > * { position: relative; z-index: 1; }
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      font-weight: 950;
+      letter-spacing: .2px;
+    }
+    .section-title .icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 9px;
+      display: inline-grid;
+      place-items: center;
+      background: linear-gradient(135deg, rgba(98,243,255,.24), rgba(255,114,189,.20));
+      color: var(--cyan);
+      box-shadow: 0 0 18px rgba(98,243,255,.15);
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 900;
+      margin: 12px 0 7px;
+      color: rgba(238,251,255,.90);
+    }
+    label:first-child { margin-top: 0; }
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid rgba(151, 232, 255, .28);
+      border-radius: 16px;
+      padding: 11px 12px;
+      font-size: 13px;
+      outline: none;
+      background: rgba(3, 10, 21, .54);
+      color: var(--text);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.07);
+      transition: border-color .15s ease, box-shadow .15s ease, transform .12s ease, background .15s ease;
+    }
+    input::placeholder, textarea::placeholder { color: rgba(220,236,246,.42); }
+    textarea { min-height: 92px; resize: vertical; line-height: 1.55; }
+    select {
+      appearance: none;
+      background-image:
+        linear-gradient(45deg, transparent 50%, rgba(238,251,255,.72) 50%),
+        linear-gradient(135deg, rgba(238,251,255,.72) 50%, transparent 50%);
+      background-position:
+        calc(100% - 18px) calc(50% - 3px),
+        calc(100% - 12px) calc(50% - 3px);
+      background-size: 6px 6px, 6px 6px;
+      background-repeat: no-repeat;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: rgba(98,243,255,.78);
+      box-shadow: 0 0 0 4px rgba(98,243,255,.12), 0 0 24px rgba(255,114,189,.08);
+      transform: translateY(-1px);
+      background: rgba(4, 13, 27, .72);
+    }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.55;
+      margin-top: 7px;
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+      margin-top: 11px;
+    }
+    .feature {
+      min-height: 76px;
+      padding: 12px;
+      border-radius: 18px;
+      background: rgba(0,0,0,.18);
+      border: 1px solid rgba(255,255,255,.10);
+    }
+    .feature b {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 6px;
+      color: #fff;
+    }
+    .feature span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .demo-box {
+      min-height: 106px;
+      padding: 12px;
+      border-radius: 18px;
+      border: 1px solid rgba(98,243,255,.22);
+      background: rgba(3, 10, 21, .42);
+      color: rgba(238,251,255,.66);
+      line-height: 1.55;
+      font-size: 13px;
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 2px 0 4px;
+    }
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 12px 20px;
+      background: linear-gradient(100deg, #51efff 0%, #7b8cff 48%, #ff72bd 100%);
+      color: #07101f;
+      font-weight: 950;
+      cursor: pointer;
+      box-shadow: 0 14px 30px rgba(98,243,255,.18), 0 12px 36px rgba(255,114,189,.14);
+      transition: transform .12s ease, filter .12s ease, box-shadow .12s ease;
+    }
+    button:hover {
+      filter: brightness(1.05);
+      transform: translateY(-1px);
+      box-shadow: 0 18px 38px rgba(98,243,255,.22), 0 14px 42px rgba(255,114,189,.18);
+    }
+    button.secondary {
+      color: rgba(238,251,255,.88);
+      background: rgba(255,255,255,.10);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.12);
+    }
+    .status {
+      font-size: 12px;
+      min-height: 18px;
+      font-weight: 900;
+      color: #7cffde;
+    }
+    .footer {
+      padding: 8px 2px 0;
+      color: rgba(238,251,255,.54);
+      font-size: 12px;
+      text-align: center;
+      letter-spacing: .1px;
+    }
+    .muted { color: var(--muted); }
+    b { color: #8bf7ff; }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div class="topline">
+        <img class="logo" src="img/Qiangge.jpg" alt="X 推文互动回复器" />
+        <div>
+          <h1>X 推文互动回复器</h1>
+          <div class="author">作者：<b>BigQiang & Akiii</b> <span class="muted">|</span> <b>@iBigQiang，@Guomin184935</b></div>
+        </div>
+      </div>
+      <div class="tagline">智能 AI 回复生成助手 · 一次 3 条候选，先编辑草稿，再填入 X</div>
+    </section>
+
+    <section class="card">
+      <div class="section-title"><span class="icon">✎</span>回复内容（可编辑）</div>
+      <div class="demo-box">
+        生成后的 3 条候选会先进入可编辑草稿窗。你可以自由修改，确认满意后再点击对应的「填入 X」。
+      </div>
+      <div class="feature-grid">
+        <div class="feature"><b>英文推文</b><span>自动使用自然英文回复，不写翻译腔。</span></div>
+        <div class="feature"><b>中文推文</b><span>自动生成短、狠、像真人的中文短评。</span></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-title"><span class="icon">⌁</span>API 设置</div>
+      <label for="provider">接口类型</label>
+      <select id="provider">
+        <option value="openai_responses">OpenAI Responses API</option>
+        <option value="chat">兼容 Chat Completions</option>
+        <option value="api2d">API2D / Chat Completions</option>
+      </select>
+
+      <label for="apiKey">API Key</label>
+      <input id="apiKey" type="password" placeholder="OpenAI: sk- / sk-proj-，API2D: fk..." autocomplete="off" />
+      <div class="hint">官方 OpenAI Key 通常是 sk- 或 sk-proj- 开头；fk 开头一般是 API2D / 中转 Key，会自动切到 API2D。</div>
+
+      <div class="row">
+        <div>
+          <label for="model">模型</label>
+          <input id="model" type="text" placeholder="gpt-4.1-mini" />
+        </div>
+        <div>
+          <label for="defaultLanguage">默认语言</label>
+          <select id="defaultLanguage">
+            <option value="zh">自动 / 中文优先</option>
+            <option value="en">英文优先</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="apiBase">OpenAI / 兼容接口 Base URL</label>
+      <input id="apiBase" type="text" placeholder="https://api.openai.com/v1" />
+      <div class="hint">兼容接口这里要填真正的 API Base，例如以 /v1 结尾的地址；不要填控制台首页或 Web 站点首页。</div>
+
+      <label for="api2dBase">API2D Base URL</label>
+      <input id="api2dBase" type="text" placeholder="https://oa.api2d.net/v1" />
+    </section>
+
+    <section class="card">
+      <div class="section-title"><span class="icon">Aa</span>回复设置</div>
+      <div class="row">
+        <div>
+          <label for="maxChineseChars">中文上限</label>
+          <input id="maxChineseChars" type="number" min="10" max="60" />
+        </div>
+        <div>
+          <label for="maxEnglishWords">英文词数</label>
+          <input id="maxEnglishWords" type="number" min="8" max="60" />
+        </div>
+      </div>
+
+      <label for="projectHandle">默认项目方 @账号，可空</label>
+      <input id="projectHandle" type="text" placeholder="例如 @worldlibertyfi" />
+
+      <label for="bannedWords">禁用词，逗号分隔</label>
+      <textarea id="bannedWords" placeholder="我觉得,值得关注,未来可期"></textarea>
+
+      <label for="customPrompt">额外提示词，可空</label>
+      <textarea id="customPrompt" placeholder="只写风格、人设和边界即可；回复数量和输出格式由插件固定控制为 3 条候选。"></textarea>
+
+      <label style="display:flex;align-items:center;gap:8px;margin-top:12px;color:rgba(238,251,255,.72);font-weight:800;">
+        <input id="debugMode" type="checkbox" style="width:auto;transform:none;" />
+        开启调试日志
+      </label>
+    </section>
+
+    <div class="actions">
+      <button id="save">保存设置</button>
+      <button class="secondary" id="reset">恢复默认</button>
+      <span class="status" id="status"></span>
+    </div>
+
+    <div class="footer">由 BigQiang & Akiii  设计与开发 · 愿 AI 与你同在 ✦</div>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>
