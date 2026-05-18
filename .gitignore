@@ -1,0 +1,23 @@
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE / 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node（项目本身无 npm 依赖，但留个口子）
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 调试输出
+*.log
+
+# Claude / 本地规划草稿（仅本机使用，不入库）
+.claude/
