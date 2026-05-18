@@ -1,9 +1,38 @@
+const PROVIDER_IDS = [
+  "openai_chat",
+  "openai_responses",
+  "gemini",
+  "anthropic",
+  "newapi",
+  "sub2api",
+  "api2d",
+  "custom"
+];
+
+const PROVIDER_DEFAULTS = {
+  openai_chat:      { apiKey: "", model: "gpt-4.1-mini",       apiBase: "https://api.openai.com/v1" },
+  openai_responses: { apiKey: "", model: "gpt-4.1-mini",       apiBase: "https://api.openai.com/v1" },
+  gemini:           { apiKey: "", model: "gemini-2.0-flash",   apiBase: "https://generativelanguage.googleapis.com/v1beta" },
+  anthropic:        { apiKey: "", model: "claude-sonnet-4-5",  apiBase: "https://api.anthropic.com" },
+  newapi:           { apiKey: "", model: "gpt-4.1-mini",       apiBase: "" },
+  sub2api:          { apiKey: "", model: "gpt-4.1-mini",       apiBase: "" },
+  api2d:            { apiKey: "", model: "gpt-4o-mini",        apiBase: "https://oa.api2d.net/v1" },
+  custom:           { apiKey: "", model: "", apiBase: "", customProtocol: "openai_chat" }
+};
+
+function emptyProviderProfiles() {
+  const out = {};
+  for (const id of PROVIDER_IDS) out[id] = { ...PROVIDER_DEFAULTS[id] };
+  return out;
+}
+
 const DEFAULT_SETTINGS = {
   provider: "openai_responses",
   apiKey: "",
   model: "gpt-4.1-mini",
   apiBase: "https://api.openai.com/v1",
   api2dBase: "https://oa.api2d.net/v1",
+  providerProfiles: emptyProviderProfiles(),
   defaultLanguage: "zh",
   defaultStyle: "sharp",
   maxChineseChars: 24,
@@ -27,12 +56,54 @@ function normalizeBase(base, fallback) {
   return raw || fallback;
 }
 
+// 老用户的 provider id 迁移：v2.0 的 "chat" → v2.1 的 "openai_chat"。
+// 同时把老顶层 apiKey/model/apiBase/api2dBase 同步到 providerProfiles，
+// 避免用户已配置的接口在升级后变空。
+function migrateSettings(raw) {
+  const settings = { ...DEFAULT_SETTINGS, ...raw };
+
+  if (settings.provider === "chat") settings.provider = "openai_chat";
+  if (!PROVIDER_IDS.includes(settings.provider)) settings.provider = "openai_responses";
+
+  const profiles = { ...emptyProviderProfiles(), ...(settings.providerProfiles || {}) };
+  for (const id of PROVIDER_IDS) {
+    profiles[id] = { ...PROVIDER_DEFAULTS[id], ...(profiles[id] || {}) };
+  }
+
+  const current = settings.provider;
+  const currentProfile = profiles[current];
+  // 顶层字段优先权高于 profile —— 用户上一版填的就是顶层这套
+  if (settings.apiKey && !currentProfile.apiKey) currentProfile.apiKey = settings.apiKey;
+  if (settings.model && currentProfile.model === PROVIDER_DEFAULTS[current].model) currentProfile.model = settings.model;
+  if (settings.apiBase && currentProfile.apiBase === PROVIDER_DEFAULTS[current].apiBase) currentProfile.apiBase = settings.apiBase;
+
+  // 老 api2dBase 字段优先回填到 api2d profile
+  if (settings.api2dBase && !profiles.api2d.apiBase) profiles.api2d.apiBase = settings.api2dBase;
+
+  settings.providerProfiles = profiles;
+  return settings;
+}
+
 function getEffectiveProvider(settings) {
   const key = String(settings.apiKey || "").trim();
   // API2D 的 Forward Key 通常是 fk 开头。用户如果误选 OpenAI 官方接口，
   // OpenAI 会直接返回 Incorrect API key。这里自动切到 API2D，减少小白配置成本。
+  // 注意：sub2api / newapi 的 Key 也是 sk- 开头，不会被这条规则误识别。
   if (/^fk/i.test(key)) return "api2d";
   return settings.provider || DEFAULT_SETTINGS.provider;
+}
+
+function getActiveProfile(settings) {
+  const provider = getEffectiveProvider(settings);
+  const profile = (settings.providerProfiles || {})[provider] || {};
+  const defaults = PROVIDER_DEFAULTS[provider] || {};
+  return {
+    provider,
+    apiKey: profile.apiKey || settings.apiKey || "",
+    model: profile.model || settings.model || defaults.model || "",
+    apiBase: profile.apiBase || settings.apiBase || defaults.apiBase || "",
+    customProtocol: profile.customProtocol || defaults.customProtocol || "openai_chat"
+  };
 }
 
 function explainApiError(errorMessage, settings) {
@@ -47,6 +118,12 @@ function explainApiError(errorMessage, settings) {
     if (effective === "openai_responses" && !/^sk-/i.test(key)) {
       return "当前选择的是 OpenAI 官方接口，但这个 Key 不像官方 OpenAI Key。官方 Key 通常以 sk- 或 sk-proj- 开头。";
     }
+    if (effective === "anthropic") {
+      return "Anthropic 接口认证失败。请确认填的是 Anthropic Key（或 DeepSeek 等兼容入口的 sk- Key），并检查 Base URL。";
+    }
+    if (effective === "gemini") {
+      return "Gemini 接口认证失败。请确认填的是 Google AI Studio 的 API Key，并检查 Base URL 是否到 /v1beta 这一级。";
+    }
     return "API Key 不正确或已失效。请重新复制完整 Key，确认没有空格，并保存后刷新 X 页面。";
   }
 
@@ -55,7 +132,7 @@ function explainApiError(errorMessage, settings) {
 
 async function getSettings() {
   const saved = await chrome.storage.local.get(Object.keys(DEFAULT_SETTINGS));
-  const settings = { ...DEFAULT_SETTINGS, ...saved };
+  const settings = migrateSettings(saved);
   globalThis.__AKIII_DEBUG__ = Boolean(settings.debugMode);
   return settings;
 }
@@ -133,7 +210,7 @@ function dedupeRepeatedText(text) {
 function maybeRepairMojibake(text) {
   const raw = String(text || "");
   if (!raw) return raw;
-  const chineseCount = (raw.match(/[\u4e00-\u9fff]/g) || []).length;
+  const chineseCount = (raw.match(/[一-鿿]/g) || []).length;
   const weirdCount = (raw.match(/[ÃÂÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ�]/g) || []).length;
   const looksBroken = weirdCount >= 3 && chineseCount === 0;
   if (!looksBroken) return raw;
@@ -150,7 +227,7 @@ function maybeRepairMojibake(text) {
   } catch (_) {}
 
   for (const candidate of candidates) {
-    const cChinese = (candidate.match(/[\u4e00-\u9fff]/g) || []).length;
+    const cChinese = (candidate.match(/[一-鿿]/g) || []).length;
     const cBroken = (candidate.match(/�/g) || []).length;
     if (cChinese > chineseCount && cBroken === 0) return candidate;
   }
@@ -161,9 +238,8 @@ function looksLikeBrokenText(text) {
   const s = String(text || "");
   if (!s.trim()) return true;
   if ((s.match(/�/g) || []).length > 0) return true;
-  // 常见乱码碎片：ä¸­æ–‡ / æˆ‘ / Ã© 等
   const suspicious = (s.match(/[ÃÂÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ]/g) || []).length;
-  const chinese = (s.match(/[\u4e00-\u9fff]/g) || []).length;
+  const chinese = (s.match(/[一-鿿]/g) || []).length;
   return suspicious >= 4 && chinese === 0;
 }
 
@@ -314,6 +390,27 @@ function extractModelText(data) {
     if (typeof choice.text === "string") return choice.text;
   }
 
+  // Anthropic Messages API
+  if (Array.isArray(data.content)) {
+    const anthropicText = data.content
+      .filter((block) => block && block.type === "text" && typeof block.text === "string")
+      .map((block) => block.text)
+      .join("");
+    if (anthropicText) return anthropicText;
+  }
+
+  // Gemini generateContent
+  if (Array.isArray(data.candidates) && data.candidates.length) {
+    const parts = data.candidates[0]?.content?.parts;
+    if (Array.isArray(parts)) {
+      const geminiText = parts
+        .map((part) => (typeof part?.text === "string" ? part.text : ""))
+        .filter(Boolean)
+        .join("");
+      if (geminiText) return geminiText;
+    }
+  }
+
   const parts = [];
   for (const item of data.output || []) {
     for (const content of item.content || []) {
@@ -352,7 +449,7 @@ async function readJsonResponse(response, requestUrl, settings) {
   }
 
   if (!response.ok) {
-    throw new Error(explainApiError(data?.error?.message || `${requestUrl} 请求失败：${response.status}`, settings));
+    throw new Error(explainApiError(data?.error?.message || data?.message || `${requestUrl} 请求失败：${response.status}`, settings));
   }
 
   return data;
@@ -454,7 +551,6 @@ function cleanReply(text, settings, payload) {
     const limit = Math.max(Number(settings.maxEnglishWords || 22) + 8, 14);
     if (words.length > limit) reply = words.slice(0, limit).join(" ");
   } else {
-    // 中文只硬截特别离谱的长输出；避免把 @handle 截断得太难看
     const max = Math.max(Number(settings.maxChineseChars || 24) + 18, 30);
     if (Array.from(reply).length > max) {
       const firstClause = reply.split(/[。！？!?；;\n]/).map((s) => s.trim()).find(Boolean);
@@ -463,8 +559,6 @@ function cleanReply(text, settings, payload) {
   }
 
   reply = dedupeRepeatedText(reply);
-
-  // 去掉结尾多余句号，评论更像随手回复
   reply = reply.replace(/[。.]$/g, "").trim();
   return reply;
 }
@@ -488,41 +582,40 @@ function tokenLimitForCount(count) {
   return desired > 1 ? Math.max(360, desired * 150) : 180;
 }
 
-async function requestResponses(settings, instructions, input, replyCount = 1) {
-  const base = normalizeBase(settings.apiBase, DEFAULT_SETTINGS.apiBase);
-  const requestUrl = `${base}/responses`;
-  const response = await fetch(requestUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json; charset=utf-8",
-      "Authorization": `Bearer ${settings.apiKey}`
-    },
-    body: JSON.stringify({
-      model: settings.model || DEFAULT_SETTINGS.model,
-      instructions,
-      input,
-      temperature: 0.85,
-      max_output_tokens: tokenLimitForCount(replyCount)
-    })
-  });
-
-  const data = await readJsonResponse(response, requestUrl, settings);
-  return extractModelText(data);
+// 8 个 provider 走的真实 endpoint —— 与 options.js 的 buildEndpointPreview 一一对应。
+// 改这里前先看 docs/开发及迭代方案调研报告/2026-05-19-迭代需求1-多渠道接口扩展.md。
+function buildRequestUrl(provider, profile, customProtocol) {
+  const base = normalizeBase(profile.apiBase, PROVIDER_DEFAULTS[provider]?.apiBase || "");
+  const model = profile.model || PROVIDER_DEFAULTS[provider]?.model || "";
+  switch (provider) {
+    case "openai_chat":
+    case "newapi":
+    case "sub2api":
+    case "api2d":
+      return `${base}/chat/completions`;
+    case "openai_responses":
+      return `${base}/responses`;
+    case "gemini":
+      return `${base}/models/${encodeURIComponent(model || "gemini-2.0-flash")}:generateContent`;
+    case "anthropic":
+      return `${base}/v1/messages`;
+    case "custom":
+      return base || "";
+    default:
+      return `${base}/chat/completions`;
+  }
 }
 
-async function requestChatCompletions(settings, instructions, input, replyCount = 1) {
-  const provider = getEffectiveProvider(settings);
-  const isApi2d = provider === "api2d";
-  const base = normalizeBase(isApi2d ? settings.api2dBase : settings.apiBase, isApi2d ? DEFAULT_SETTINGS.api2dBase : DEFAULT_SETTINGS.apiBase);
-  const requestUrl = `${base}/chat/completions`;
+async function requestOpenAIChat(profile, instructions, input, replyCount, settings, urlOverride) {
+  const requestUrl = urlOverride || `${normalizeBase(profile.apiBase, PROVIDER_DEFAULTS.openai_chat.apiBase)}/chat/completions`;
   const response = await fetch(requestUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json; charset=utf-8",
-      "Authorization": `Bearer ${settings.apiKey}`
+      "Authorization": `Bearer ${profile.apiKey}`
     },
     body: JSON.stringify({
-      model: settings.model || DEFAULT_SETTINGS.model,
+      model: profile.model || DEFAULT_SETTINGS.model,
       messages: [
         { role: "system", content: instructions },
         { role: "user", content: input }
@@ -536,15 +629,116 @@ async function requestChatCompletions(settings, instructions, input, replyCount 
   return extractModelText(data);
 }
 
+async function requestOpenAIResponses(profile, instructions, input, replyCount, settings, urlOverride) {
+  const requestUrl = urlOverride || `${normalizeBase(profile.apiBase, PROVIDER_DEFAULTS.openai_responses.apiBase)}/responses`;
+  const response = await fetch(requestUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Authorization": `Bearer ${profile.apiKey}`
+    },
+    body: JSON.stringify({
+      model: profile.model || DEFAULT_SETTINGS.model,
+      instructions,
+      input,
+      temperature: 0.85,
+      max_output_tokens: tokenLimitForCount(replyCount)
+    })
+  });
+
+  const data = await readJsonResponse(response, requestUrl, settings);
+  return extractModelText(data);
+}
+
+async function requestGemini(profile, instructions, input, replyCount, settings) {
+  const base = normalizeBase(profile.apiBase, PROVIDER_DEFAULTS.gemini.apiBase);
+  const model = profile.model || PROVIDER_DEFAULTS.gemini.model;
+  const requestUrl = `${base}/models/${encodeURIComponent(model)}:generateContent`;
+  const response = await fetch(requestUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "x-goog-api-key": profile.apiKey
+    },
+    body: JSON.stringify({
+      system_instruction: { parts: [{ text: instructions }] },
+      contents: [{ role: "user", parts: [{ text: input }] }],
+      generationConfig: {
+        temperature: 0.85,
+        maxOutputTokens: tokenLimitForCount(replyCount)
+      }
+    })
+  });
+
+  const data = await readJsonResponse(response, requestUrl, settings);
+  return extractModelText(data);
+}
+
+async function requestAnthropic(profile, instructions, input, replyCount, settings) {
+  const base = normalizeBase(profile.apiBase, PROVIDER_DEFAULTS.anthropic.apiBase);
+  const requestUrl = `${base}/v1/messages`;
+  const response = await fetch(requestUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "x-api-key": profile.apiKey,
+      "anthropic-version": "2023-06-01"
+    },
+    body: JSON.stringify({
+      model: profile.model || PROVIDER_DEFAULTS.anthropic.model,
+      max_tokens: tokenLimitForCount(replyCount),
+      system: instructions,
+      messages: [{ role: "user", content: input }],
+      temperature: 0.85
+    })
+  });
+
+  const data = await readJsonResponse(response, requestUrl, settings);
+  return extractModelText(data);
+}
+
 async function callModel(settings, instructions, input, replyCount = 1) {
-  const provider = getEffectiveProvider(settings);
-  if (provider === "openai_responses") return requestResponses(settings, instructions, input, replyCount);
-  return requestChatCompletions(settings, instructions, input, replyCount);
+  const profile = getActiveProfile(settings);
+  const { provider, customProtocol } = profile;
+
+  if (provider === "custom") {
+    const base = normalizeBase(profile.apiBase, "");
+    if (!base) throw new Error("自定义接口需要在设置里填写完整的 endpoint URL");
+    // custom 走子协议，把完整 URL 直接传给底层函数
+    switch (customProtocol) {
+      case "openai_responses":
+        return requestOpenAIResponses(profile, instructions, input, replyCount, settings, base);
+      case "anthropic":
+        return requestAnthropic({ ...profile, apiBase: base.replace(/\/v1\/messages$/i, "") }, instructions, input, replyCount, settings);
+      case "gemini":
+        // gemini 的 URL 强相关 model，custom + gemini 子协议下要求 base 已含 :generateContent
+        return requestGemini({ ...profile, apiBase: base.replace(/\/models\/.+$/i, "") }, instructions, input, replyCount, settings);
+      case "openai_chat":
+      default:
+        return requestOpenAIChat(profile, instructions, input, replyCount, settings, base);
+    }
+  }
+
+  switch (provider) {
+    case "openai_responses":
+      return requestOpenAIResponses(profile, instructions, input, replyCount, settings);
+    case "gemini":
+      return requestGemini(profile, instructions, input, replyCount, settings);
+    case "anthropic":
+      return requestAnthropic(profile, instructions, input, replyCount, settings);
+    case "openai_chat":
+    case "newapi":
+    case "sub2api":
+    case "api2d":
+    default:
+      return requestOpenAIChat(profile, instructions, input, replyCount, settings);
+  }
 }
 
 async function generateReplies(payload, replyCount = 3) {
   const settings = await getSettings();
-  if (!settings.apiKey || !settings.apiKey.trim()) {
+  const profile = getActiveProfile(settings);
+  if (!profile.apiKey || !profile.apiKey.trim()) {
     throw new Error("请先点击插件图标，在设置里保存 API Key");
   }
   const desiredCount = clampReplyCount(replyCount);
@@ -587,11 +781,8 @@ async function generateReply(payload) {
 
 chrome.runtime.onInstalled.addListener(async (details) => {
   const existing = await chrome.storage.local.get(Object.keys(DEFAULT_SETTINGS));
-  const init = {};
-  for (const [key, value] of Object.entries(DEFAULT_SETTINGS)) {
-    if (existing[key] === undefined) init[key] = value;
-  }
-  if (Object.keys(init).length) await chrome.storage.local.set(init);
+  const migrated = migrateSettings(existing);
+  await chrome.storage.local.set(migrated);
   if (details.reason === "install") chrome.runtime.openOptionsPage();
 });
 

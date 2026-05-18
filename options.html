@@ -316,14 +316,31 @@
       <div class="section-title"><span class="icon">⌁</span>API 设置</div>
       <label for="provider">接口类型</label>
       <select id="provider">
-        <option value="openai_responses">OpenAI Responses API</option>
-        <option value="chat">兼容 Chat Completions</option>
-        <option value="api2d">API2D / Chat Completions</option>
+        <option value="openai_chat">OpenAI-Chat</option>
+        <option value="openai_responses">OpenAI-Response</option>
+        <option value="gemini">Gemini</option>
+        <option value="anthropic">Anthropic</option>
+        <option value="newapi">New API</option>
+        <option value="sub2api">Sub2API</option>
+        <option value="api2d">api2d</option>
+        <option value="custom">自定义</option>
       </select>
+      <div class="hint" id="providerHint">切换渠道会自动加载该渠道上次保存的 Key、模型、Base URL。</div>
+
+      <div id="customProtocolRow" style="display:none;">
+        <label for="customProtocol">自定义渠道使用的协议</label>
+        <select id="customProtocol">
+          <option value="openai_chat">OpenAI-Chat</option>
+          <option value="openai_responses">OpenAI-Response</option>
+          <option value="anthropic">Anthropic</option>
+          <option value="gemini">Gemini</option>
+        </select>
+        <div class="hint">自定义渠道下，Base URL 请填写完整 endpoint，例如 https://api.deepseek.com/anthropic/v1/messages。</div>
+      </div>
 
       <label for="apiKey">API Key</label>
       <input id="apiKey" type="password" placeholder="OpenAI: sk- / sk-proj-，API2D: fk..." autocomplete="off" />
-      <div class="hint">官方 OpenAI Key 通常是 sk- 或 sk-proj- 开头；fk 开头一般是 API2D / 中转 Key，会自动切到 API2D。</div>
+      <div class="hint">官方 OpenAI Key 通常是 sk- 或 sk-proj- 开头；fk 开头一般是 API2D / 中转 Key，会自动切到 API2D。每个渠道单独保存，不会互相覆盖。</div>
 
       <div class="row">
         <div>
@@ -339,12 +356,10 @@
         </div>
       </div>
 
-      <label for="apiBase">OpenAI / 兼容接口 Base URL</label>
+      <label for="apiBase">Base URL</label>
       <input id="apiBase" type="text" placeholder="https://api.openai.com/v1" />
-      <div class="hint">兼容接口这里要填真正的 API Base，例如以 /v1 结尾的地址；不要填控制台首页或 Web 站点首页。</div>
-
-      <label for="api2dBase">API2D Base URL</label>
-      <input id="api2dBase" type="text" placeholder="https://oa.api2d.net/v1" />
+      <div class="hint" id="apiBaseHint">填写到对应渠道文档要求的层级；不要填控制台首页或 Web 站点首页。</div>
+      <div class="hint" id="apiBasePreview" style="color:rgba(214,231,242,.58);font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;font-size:11.5px;word-break:break-all;">完整 API_Base_URL 预览：—</div>
     </section>
 
     <section class="card">

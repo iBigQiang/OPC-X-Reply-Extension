@@ -1,5 +1,9 @@
 .akiii-ai-button {
   appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
   border: 1px solid rgba(139, 247, 255, .55);
   background:
     linear-gradient(135deg, rgba(98, 243, 255, .95), rgba(255, 114, 189, .92));
@@ -131,8 +135,11 @@
 }
 
 .akiii-draft-close {
+  display: inline-grid;
+  place-items: center;
   width: 31px;
   height: 31px;
+  padding: 0;
   border: 1px solid rgba(255,255,255,.12);
   border-radius: 999px;
   background: rgba(255,255,255,.08);

@@ -35,3 +35,17 @@ test("candidate action buttons use one compact shared width", () => {
   assert.doesNotMatch(rule(".akiii-draft-copy"), /(?:^|\s)width:\s*\d+px;/);
   assert.doesNotMatch(rule(".akiii-draft-insert"), /(?:^|\s)width:\s*\d+px;/);
 });
+
+test("AI 按钮文字水平和垂直都居中（修复评论框 / 弹窗内 AI填入文字左偏 bug）", () => {
+  const aiBtn = rule(".akiii-ai-button");
+  assert.match(aiBtn, /display:\s*inline-flex;/);
+  assert.match(aiBtn, /align-items:\s*center;/);
+  assert.match(aiBtn, /justify-content:\s*center;/);
+});
+
+test("草稿窗右上角关闭按钮的 × 必须居中（修复 × 偏上偏左 bug）", () => {
+  const close = rule(".akiii-draft-close");
+  assert.match(close, /display:\s*inline-grid;/);
+  assert.match(close, /place-items:\s*center;/);
+  assert.match(close, /padding:\s*0;/);
+});
