@@ -5,6 +5,26 @@
 
 ---
 
+## v2.0.2 — 2025-05-18 — Ship 打包流程固化
+
+**确定方案**
+
+迭代过程中发现：远端仓库根目录有一份 `OPC-X-Reply-Extension.zip` 供普通用户直接下载使用，但项目没有任何"每次迭代后必须重打 zip"的强约束，容易把"代码已更新、zip 还是旧的"这种 bug 带到生产。把打包步骤固化进 `CLAUDE.md` 的 /ship 收尾流程，并落地一个 `pack.sh` 脚本，让每次迭代结束 push 前都重新生成 zip。
+
+**实施细节**
+
+- 新增 `pack.sh`（项目根）— 一键打包：`manifest.json` + 4 个 js/css/html + `img/` + `README.md` + `禁用词.txt` + `额外提示词.txt`，明确**不**打入 `CLAUDE.md` / `docs/` / `tasks/` / `tests/` / `.gitignore` / `pack.sh` / 私有灵感库（`额外提示词1.txt` / `额外提示词2.txt`）
+- `CLAUDE.md` 新增「/ship 收尾流程（本项目专用）」小节，明确"push 前必跑 `bash pack.sh`，把新 zip 一起提交，老 zip 必须覆盖"
+- `CLAUDE.md`「常用命令」加入 `bash pack.sh`
+- `CLAUDE.md`「改动前的强制验证清单」末尾追加一条"重打 zip 并随 commit 提交"
+- 本次执行 `bash pack.sh` 生成新 zip 覆盖远端旧 zip
+
+**状态**
+
+已交付。新 zip 与文档一起进入新 commit。
+
+---
+
 ## v2.0.1 — 2025-05-18 — 文档底座补齐
 
 **确定方案**

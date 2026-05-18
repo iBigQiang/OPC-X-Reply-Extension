@@ -106,6 +106,9 @@ node --test tests/*.test.mjs
 
 # 单独跑某一个测试
 node --test tests/background.test.mjs
+
+# 重新打包供普通用户下载的 zip（push 远端前必跑）
+bash pack.sh
 ```
 
 **安装/加载到 Chrome：**
@@ -130,6 +133,7 @@ node --test tests/background.test.mjs
 - [ ] 故意把 `apiBase` 改成 `https://api.openai.com`（去掉 `/v1`）或网站首页，确认报"Base URL 可能填成了首页"而**不是**显示固定兜底句
 - [ ] options 页保存后，`chrome.storage.local` 里能看到所有字段
 - [ ] 没有 `console.log` 漏到生成路径上（要用 `log()`）
+- [ ] **`bash pack.sh` 重打 `OPC-X-Reply-Extension.zip`，并把新 zip 一起提交到远端**（普通用户只通过 GitHub 下载这一个 zip 解压用，老 zip 必须被覆盖）
 
 ## 绝对不要
 
@@ -153,3 +157,18 @@ node --test tests/background.test.mjs
 - `docs/DEVLOG.md` — 开发日志（最新版本在最前）
 - `docs/开发及迭代方案调研报告/` — 每次大改前的方案文档
 - `tasks/todo.md` — 当前迭代的可勾选任务清单
+- `pack.sh` — 打包发布脚本
+
+## /ship 收尾流程（本项目专用）
+
+每次迭代代码测试通过后、push 到远端之前，必须按这个顺序：
+
+1. `node --test tests/*.test.mjs` 全绿
+2. 走完上一节「改动前的强制验证清单」
+3. 跑 `bash pack.sh` **重新生成 `OPC-X-Reply-Extension.zip`**
+4. `git add` 包括 `OPC-X-Reply-Extension.zip` 在内的所有变更
+5. `git commit` 后 `git push`
+
+**为什么必须每次重打 zip：** 普通用户不会 clone 项目源码——他们只下载 `OPC-X-Reply-Extension.zip`，解压后在 `chrome://extensions/` 加载已解压目录。如果迭代后忘了重打 zip，普通用户拿到的就是老版本，跟仓库 README 描述的能力对不上。
+
+**绝不**在 push 前跳过 `bash pack.sh`，**也绝不**把老 zip 留在仓库里。

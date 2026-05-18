@@ -11,6 +11,11 @@
 - [x] 跑 `node --test tests/*.test.mjs` 确认未误伤现有测试（结果：6/6 全过）
 - [x] 复盘填写
 - [x] 执行 `/ship` 收尾
+- [x] 接入 git 仓库（`git init` + 远端 `https://github.com/iBigQiang/OPC-X-Reply-Extension.git`）
+- [x] `git pull --rebase`，保留远端 5 个历史 commit，README 冲突按远端版本解决
+- [x] 写 `pack.sh` 并把"push 前必跑 `bash pack.sh`"写进 `CLAUDE.md` 的「/ship 收尾流程（本项目专用）」
+- [x] 跑 `bash pack.sh` 生成新 `OPC-X-Reply-Extension.zip` 覆盖远端老 zip
+- [x] `git commit` 把所有 v2.0.1/v2.0.2 变更 + 新 zip 一起入库，`git push` 到 `origin/main`
 
 ## 摘要
 
