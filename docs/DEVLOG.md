@@ -5,6 +5,51 @@
 
 ---
 
+## v2.1.3 — 2026-05-19 — Base URL 智能自动补全归一化（学习 Cherry Studio）
+
+**确定方案**
+
+v2.1.0 引入的 8 渠道接口对用户输入粒度敏感：OpenAI 类必须填到 `/v1`、Anthropic 必须填到根域名、Gemini 必须填到 `/v1beta`，填错粒度就会拼出错误 URL（双 `/v1` 或缺 `/v1`）。本次参考 [Cherry Studio 服务商配置](https://docs.cherry-ai.com/pre-basic/settings/providers) 的兼容方案，做"用户填啥粒度都能拼对"的归一化升级。子代理联网核对了 6 个官方 endpoint 路径与 Cherry Studio 的 `#` 终止符规则，详细方案见 `docs/开发及迭代方案调研报告/2026-05-19-v2.1.3-Base-URL-自动补全归一化.md`。
+
+**比 Cherry Studio 多走一步**：Cherry Studio 不识别"已含 /v1"，靠用户用 `#` 显式声明；本扩展面向 X 用户，让他们记 `#` 太重，所以默认就**智能识别**根域名 / `/v1` / `/v1/` / 完整 endpoint，`#` 仅作为「保留逃生舱」用于走 Azure 风格特殊路径。
+
+**实施细节**
+
+- `options.js`
+  - 重写 `buildEndpointPreview`：所有依赖（`PATH_SPEC` / `escapeRe` / 归一化算法）都内联到函数闭包内，保证 `tests/endpoint-preview.test.mjs` 的 `new Function` 抽函数测试仍可用
+  - `PROVIDER_BASE_HINTS` 8 条全部升级文案，告知用户可填根域名或带 /v1，提示 `#` 终止符
+- `background.js`
+  - 新增顶层 `PROVIDER_PATH_SPEC` + `escapeRegex` + `buildFinalEndpoint`，与 `options.js` 的 `buildEndpointPreview` 同款逻辑
+  - 删除 v2.1.0 残留的死代码 `buildRequestUrl`
+  - 重构 `callModel`：custom 渠道保持完全透传（仅去掉末尾 `/` 或 `#`），其他渠道用 `buildFinalEndpoint` 计算 `requestUrl` 后传给请求函数
+  - 重构 `requestOpenAIChat` / `requestOpenAIResponses` / `requestGemini` / `requestAnthropic`：均改为接收必填的 `requestUrl` 参数，不再内部拼接路径；删除 `urlOverride` 二义性
+- `options.html`
+  - Base URL 输入框下方 fallback `apiBaseHint` 文案升级为"支持填根域名或带 /v1，自动补全；末尾加 # 强制完整 URL"
+- `tests/endpoint-preview.test.mjs` 新增 10 条用例
+  - openai_chat 根域名自动补、完整 endpoint 透传（含大小写）
+  - openai_responses 根域名补全
+  - anthropic 带 /v1 不重复、完整 endpoint 透传
+  - gemini 根域名补全、完整 endpoint（含 model）透传
+  - newapi / sub2api 根域名补全
+  - `#` 终止符跨 provider 透传（含 Azure 风格路径）
+  - `/v1$` 边界匹配不误判 `/v1beta`
+  - base 为空给占位
+- `tests/background.test.mjs` 新增 5 条用例覆盖实际 fetch URL
+  - anthropic 填根域名 / 填带 /v1 各自正确
+  - openai_chat 填根域名自动补 /v1/chat/completions
+  - `#` 终止符强制透传 Azure 风格路径
+  - gemini 填根域名自动补 /v1beta/models/{model}:generateContent
+- `manifest.json` v2.1.2 → v2.1.3，description 补「Base URL 智能自动补全（根域名 / 带 /v1 / 完整 endpoint / # 终止符 都能识别）」
+- `OPC-X-Reply-Extension.zip` 由 `bash pack.sh` 重打
+- **不动**：内容脚本、CSS、UI 布局、`PROVIDER_DEFAULTS` 默认值（保持向后兼容现有用户配置）
+- 不触发 Impeccable 全审（后端逻辑 + 文案微调），不跑 /btw（属"补强已有特性的兼容性"）
+
+**状态**
+
+代码与测试已交付。`node --test tests/*.test.mjs` 41/41 全绿（原 25 + 新 16）。Chrome 实测项：装载新 zip → options 页 → 试三种粒度（根域名 / 带 /v1 / 带 /v1/）切换各渠道、实时预览 URL 应一致；点 AI回 实际生成应成功；故意配错的 base 仍能报"Base URL 可能填成了首页"。
+
+---
+
 ## v2.1.2 — 2026-05-19 — API Key 输入框加密码可见性切换（小眼睛）
 
 **确定方案**

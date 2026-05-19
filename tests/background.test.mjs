@@ -263,3 +263,81 @@ test("legacy provider id 'chat' is migrated to 'openai_chat' at request time", a
   assert.match(calls[0].init.headers.Authorization, /^Bearer sk-legacy$/);
   assert.equal(replies.length, 3);
 });
+
+// v2.1.3 — Base URL 自动补全归一化：用户填啥粒度都能拼对
+test("v2.1.3: anthropic 用户填根域名（不带 /v1）时，fetch URL 仍是 /v1/messages", async () => {
+  const { calls, fetchImpl } = recordingFetch({
+    content: [{ type: "text", text: JSON.stringify(["A", "B", "C"]) }]
+  });
+
+  const context = loadBackground({
+    settings: providerSettings("anthropic", { apiBase: "https://api.deepseek.com/anthropic" }),
+    fetchImpl
+  });
+
+  await context.generateReplies(payload(), 3);
+  assert.equal(calls[0].url, "https://api.deepseek.com/anthropic/v1/messages");
+});
+
+test("v2.1.3: anthropic 用户填带 /v1 时，fetch URL 不会重复 v1", async () => {
+  const { calls, fetchImpl } = recordingFetch({
+    content: [{ type: "text", text: JSON.stringify(["A", "B", "C"]) }]
+  });
+
+  const context = loadBackground({
+    settings: providerSettings("anthropic", { apiBase: "https://api.deepseek.com/anthropic/v1" }),
+    fetchImpl
+  });
+
+  await context.generateReplies(payload(), 3);
+  assert.equal(calls[0].url, "https://api.deepseek.com/anthropic/v1/messages");
+});
+
+test("v2.1.3: openai_chat 用户填根域名时，fetch URL 自动补 /v1/chat/completions", async () => {
+  const { calls, fetchImpl } = recordingFetch({
+    choices: [{ message: { content: JSON.stringify(["A", "B", "C"]) } }]
+  });
+
+  const context = loadBackground({
+    settings: providerSettings("openai_chat", { apiBase: "https://api.deepseek.com" }),
+    fetchImpl
+  });
+
+  await context.generateReplies(payload(), 3);
+  assert.equal(calls[0].url, "https://api.deepseek.com/v1/chat/completions");
+});
+
+test("v2.1.3: # 终止符强制透传，绕过任何自动补全", async () => {
+  const { calls, fetchImpl } = recordingFetch({
+    choices: [{ message: { content: JSON.stringify(["A", "B", "C"]) } }]
+  });
+
+  const context = loadBackground({
+    settings: providerSettings("openai_chat", {
+      apiBase: "https://my.proxy/azure/openai/deployments/X/chat/completions#"
+    }),
+    fetchImpl
+  });
+
+  await context.generateReplies(payload(), 3);
+  assert.equal(calls[0].url, "https://my.proxy/azure/openai/deployments/X/chat/completions");
+});
+
+test("v2.1.3: gemini 用户填根域名时，fetch URL 自动补 /v1beta/models/{model}:generateContent", async () => {
+  const { calls, fetchImpl } = recordingFetch({
+    candidates: [{
+      content: { parts: [{ text: JSON.stringify(["A", "B", "C"]) }] }
+    }]
+  });
+
+  const context = loadBackground({
+    settings: providerSettings("gemini", { apiBase: "https://generativelanguage.googleapis.com" }),
+    fetchImpl
+  });
+
+  await context.generateReplies(payload(), 3);
+  assert.equal(
+    calls[0].url,
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+  );
+});

@@ -56,6 +56,62 @@ function normalizeBase(base, fallback) {
   return raw || fallback;
 }
 
+// 8 个 provider 走的真实 endpoint —— 与 options.js 的 buildEndpointPreview 一一对应。
+// v2.1.3 起支持自动补全：根域名 / /v1 / /v1/ / 完整 endpoint / 末尾 # 透传 都能正确归一化。
+// 改这里前先看 docs/开发及迭代方案调研报告/2026-05-19-v2.1.3-Base-URL-自动补全归一化.md
+const PROVIDER_PATH_SPEC = {
+  openai_chat:      { versionSeg: "/v1",     endpointTail: "/chat/completions" },
+  openai_responses: { versionSeg: "/v1",     endpointTail: "/responses" },
+  newapi:           { versionSeg: "/v1",     endpointTail: "/chat/completions" },
+  sub2api:          { versionSeg: "/v1",     endpointTail: "/chat/completions" },
+  api2d:            { versionSeg: "/v1",     endpointTail: "/chat/completions" },
+  anthropic:        { versionSeg: "/v1",     endpointTail: "/messages" },
+  gemini:           { versionSeg: "/v1beta", endpointTail: "/models/{model}:generateContent" }
+};
+
+function escapeRegex(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function buildFinalEndpoint(provider, base, model) {
+  const raw = String(base || "").trim();
+  if (!raw) return "";
+
+  // 1. # 终止符：用户显式声明完整 URL，仅去掉末尾 # 和 /
+  if (raw.endsWith("#")) {
+    return raw.slice(0, -1).replace(/\/+$/, "");
+  }
+
+  // 2. 去掉末尾 0+ 个 /
+  const trimmed = raw.replace(/\/+$/, "");
+
+  // 3. 未知 provider 兜底为 openai_chat 风格
+  const spec = PROVIDER_PATH_SPEC[provider] || PROVIDER_PATH_SPEC.openai_chat;
+
+  // 4. 用户已填完整 endpoint：识别并透传
+  if (provider === "gemini") {
+    if (/\/models\/[^/]+:generateContent$/i.test(trimmed)) return trimmed;
+  } else {
+    const fullSuffix = (spec.versionSeg + spec.endpointTail).toLowerCase();
+    if (trimmed.toLowerCase().endsWith(fullSuffix)) return trimmed;
+  }
+
+  // 5. 用户已以 versionSeg 结尾：直接拼 endpointTail
+  // 精确末尾匹配：/v1$ 不会误判 /v1beta
+  const versionEndRe = new RegExp(escapeRegex(spec.versionSeg) + "$", "i");
+  const baseWithVersion = versionEndRe.test(trimmed)
+    ? trimmed
+    : trimmed + spec.versionSeg;
+
+  // 6. 拼 endpointTail（gemini 替换 {model} 占位）
+  let tail = spec.endpointTail;
+  if (provider === "gemini") {
+    const modelLabel = String(model || "").trim() || "gemini-2.0-flash";
+    tail = tail.replace("{model}", encodeURIComponent(modelLabel));
+  }
+  return baseWithVersion + tail;
+}
+
 // 老用户的 provider id 迁移：v2.0 的 "chat" → v2.1 的 "openai_chat"。
 // 同时把老顶层 apiKey/model/apiBase/api2dBase 同步到 providerProfiles，
 // 避免用户已配置的接口在升级后变空。
@@ -582,32 +638,7 @@ function tokenLimitForCount(count) {
   return desired > 1 ? Math.max(360, desired * 150) : 180;
 }
 
-// 8 个 provider 走的真实 endpoint —— 与 options.js 的 buildEndpointPreview 一一对应。
-// 改这里前先看 docs/开发及迭代方案调研报告/2026-05-19-迭代需求1-多渠道接口扩展.md。
-function buildRequestUrl(provider, profile, customProtocol) {
-  const base = normalizeBase(profile.apiBase, PROVIDER_DEFAULTS[provider]?.apiBase || "");
-  const model = profile.model || PROVIDER_DEFAULTS[provider]?.model || "";
-  switch (provider) {
-    case "openai_chat":
-    case "newapi":
-    case "sub2api":
-    case "api2d":
-      return `${base}/chat/completions`;
-    case "openai_responses":
-      return `${base}/responses`;
-    case "gemini":
-      return `${base}/models/${encodeURIComponent(model || "gemini-2.0-flash")}:generateContent`;
-    case "anthropic":
-      return `${base}/v1/messages`;
-    case "custom":
-      return base || "";
-    default:
-      return `${base}/chat/completions`;
-  }
-}
-
-async function requestOpenAIChat(profile, instructions, input, replyCount, settings, urlOverride) {
-  const requestUrl = urlOverride || `${normalizeBase(profile.apiBase, PROVIDER_DEFAULTS.openai_chat.apiBase)}/chat/completions`;
+async function requestOpenAIChat(profile, instructions, input, replyCount, settings, requestUrl) {
   const response = await fetch(requestUrl, {
     method: "POST",
     headers: {
@@ -629,8 +660,7 @@ async function requestOpenAIChat(profile, instructions, input, replyCount, setti
   return extractModelText(data);
 }
 
-async function requestOpenAIResponses(profile, instructions, input, replyCount, settings, urlOverride) {
-  const requestUrl = urlOverride || `${normalizeBase(profile.apiBase, PROVIDER_DEFAULTS.openai_responses.apiBase)}/responses`;
+async function requestOpenAIResponses(profile, instructions, input, replyCount, settings, requestUrl) {
   const response = await fetch(requestUrl, {
     method: "POST",
     headers: {
@@ -650,10 +680,7 @@ async function requestOpenAIResponses(profile, instructions, input, replyCount, 
   return extractModelText(data);
 }
 
-async function requestGemini(profile, instructions, input, replyCount, settings) {
-  const base = normalizeBase(profile.apiBase, PROVIDER_DEFAULTS.gemini.apiBase);
-  const model = profile.model || PROVIDER_DEFAULTS.gemini.model;
-  const requestUrl = `${base}/models/${encodeURIComponent(model)}:generateContent`;
+async function requestGemini(profile, instructions, input, replyCount, settings, requestUrl) {
   const response = await fetch(requestUrl, {
     method: "POST",
     headers: {
@@ -674,9 +701,7 @@ async function requestGemini(profile, instructions, input, replyCount, settings)
   return extractModelText(data);
 }
 
-async function requestAnthropic(profile, instructions, input, replyCount, settings) {
-  const base = normalizeBase(profile.apiBase, PROVIDER_DEFAULTS.anthropic.apiBase);
-  const requestUrl = `${base}/v1/messages`;
+async function requestAnthropic(profile, instructions, input, replyCount, settings, requestUrl) {
   const response = await fetch(requestUrl, {
     method: "POST",
     headers: {
@@ -701,37 +726,38 @@ async function callModel(settings, instructions, input, replyCount = 1) {
   const profile = getActiveProfile(settings);
   const { provider, customProtocol } = profile;
 
+  let requestUrl;
+  let actualProtocol;
+
   if (provider === "custom") {
-    const base = normalizeBase(profile.apiBase, "");
-    if (!base) throw new Error("自定义接口需要在设置里填写完整的 endpoint URL");
-    // custom 走子协议，把完整 URL 直接传给底层函数
-    switch (customProtocol) {
-      case "openai_responses":
-        return requestOpenAIResponses(profile, instructions, input, replyCount, settings, base);
-      case "anthropic":
-        return requestAnthropic({ ...profile, apiBase: base.replace(/\/v1\/messages$/i, "") }, instructions, input, replyCount, settings);
-      case "gemini":
-        // gemini 的 URL 强相关 model，custom + gemini 子协议下要求 base 已含 :generateContent
-        return requestGemini({ ...profile, apiBase: base.replace(/\/models\/.+$/i, "") }, instructions, input, replyCount, settings);
-      case "openai_chat":
-      default:
-        return requestOpenAIChat(profile, instructions, input, replyCount, settings, base);
-    }
+    // custom 渠道完全透传：用户必须自己填完整 endpoint URL，不参与归一化
+    const raw = String(profile.apiBase || "").trim();
+    if (!raw) throw new Error("自定义接口需要在设置里填写完整的 endpoint URL");
+    requestUrl = raw.endsWith("#")
+      ? raw.slice(0, -1).replace(/\/+$/, "")
+      : raw.replace(/\/+$/, "");
+    actualProtocol = customProtocol || "openai_chat";
+  } else {
+    // 标准 provider：buildFinalEndpoint 自动补全归一化
+    requestUrl = buildFinalEndpoint(provider, profile.apiBase, profile.model)
+      || buildFinalEndpoint(provider, PROVIDER_DEFAULTS[provider]?.apiBase || "", profile.model);
+    if (!requestUrl) throw new Error(`${provider} 渠道需要在设置里填写 Base URL`);
+    actualProtocol = provider;
   }
 
-  switch (provider) {
+  switch (actualProtocol) {
     case "openai_responses":
-      return requestOpenAIResponses(profile, instructions, input, replyCount, settings);
+      return requestOpenAIResponses(profile, instructions, input, replyCount, settings, requestUrl);
     case "gemini":
-      return requestGemini(profile, instructions, input, replyCount, settings);
+      return requestGemini(profile, instructions, input, replyCount, settings, requestUrl);
     case "anthropic":
-      return requestAnthropic(profile, instructions, input, replyCount, settings);
+      return requestAnthropic(profile, instructions, input, replyCount, settings, requestUrl);
     case "openai_chat":
     case "newapi":
     case "sub2api":
     case "api2d":
     default:
-      return requestOpenAIChat(profile, instructions, input, replyCount, settings);
+      return requestOpenAIChat(profile, instructions, input, replyCount, settings, requestUrl);
   }
 }
 

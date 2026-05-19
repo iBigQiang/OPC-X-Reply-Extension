@@ -86,3 +86,108 @@ test("未知 provider 走 openai chat 路径作为兜底，避免预览空白", 
     "https://example.com/v1/chat/completions"
   );
 });
+
+// v2.1.3 — Cherry Studio 风的自动补全归一化：用户填啥粒度都能拼对
+test("openai_chat 根域名自动补 /v1/chat/completions", () => {
+  assert.equal(
+    buildEndpointPreview("openai_chat", "https://api.deepseek.com", ""),
+    "https://api.deepseek.com/v1/chat/completions"
+  );
+  assert.equal(
+    buildEndpointPreview("openai_chat", "https://api.deepseek.com/", ""),
+    "https://api.deepseek.com/v1/chat/completions"
+  );
+});
+
+test("openai_chat 用户填完整 endpoint URL 透传", () => {
+  assert.equal(
+    buildEndpointPreview("openai_chat", "https://api.deepseek.com/v1/chat/completions", ""),
+    "https://api.deepseek.com/v1/chat/completions"
+  );
+  // 大小写不敏感
+  assert.equal(
+    buildEndpointPreview("openai_chat", "https://api.deepseek.com/v1/Chat/Completions", ""),
+    "https://api.deepseek.com/v1/Chat/Completions"
+  );
+});
+
+test("openai_responses 根域名补全为 /v1/responses", () => {
+  assert.equal(
+    buildEndpointPreview("openai_responses", "https://newapi.hitu.me", ""),
+    "https://newapi.hitu.me/v1/responses"
+  );
+});
+
+test("anthropic 用户填带 /v1 不重复 v1", () => {
+  assert.equal(
+    buildEndpointPreview("anthropic", "https://api.deepseek.com/anthropic/v1", ""),
+    "https://api.deepseek.com/anthropic/v1/messages"
+  );
+  assert.equal(
+    buildEndpointPreview("anthropic", "https://api.deepseek.com/anthropic/v1/", ""),
+    "https://api.deepseek.com/anthropic/v1/messages"
+  );
+});
+
+test("anthropic 用户填完整 endpoint URL 透传", () => {
+  assert.equal(
+    buildEndpointPreview("anthropic", "https://api.deepseek.com/anthropic/v1/messages", ""),
+    "https://api.deepseek.com/anthropic/v1/messages"
+  );
+});
+
+test("gemini 根域名自动补 /v1beta/models/.../generateContent", () => {
+  assert.equal(
+    buildEndpointPreview("gemini", "https://generativelanguage.googleapis.com", "gemini-2.0-flash"),
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+  );
+});
+
+test("gemini 用户填完整 endpoint URL（含 model）透传", () => {
+  assert.equal(
+    buildEndpointPreview("gemini", "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent", "gemini-2.0-flash"),
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent"
+  );
+});
+
+test("newapi / sub2api 根域名自动补 /v1/chat/completions", () => {
+  assert.equal(
+    buildEndpointPreview("newapi", "https://newapi.hitu.me", ""),
+    "https://newapi.hitu.me/v1/chat/completions"
+  );
+  assert.equal(
+    buildEndpointPreview("sub2api", "https://demo.sub2api.org", ""),
+    "https://demo.sub2api.org/v1/chat/completions"
+  );
+});
+
+test("# 终止符强制透传：跨 provider 都生效", () => {
+  // openai_chat 走 Azure 风格自定义路径
+  assert.equal(
+    buildEndpointPreview("openai_chat", "https://my.proxy/openai/deployments/X/chat/completions#", ""),
+    "https://my.proxy/openai/deployments/X/chat/completions"
+  );
+  // anthropic 自定义路径
+  assert.equal(
+    buildEndpointPreview("anthropic", "https://my.proxy/anthropic/special/messages#", ""),
+    "https://my.proxy/anthropic/special/messages"
+  );
+  // # 后面还有末尾 / 也得去掉
+  assert.equal(
+    buildEndpointPreview("openai_chat", "https://my.proxy/abs/#", ""),
+    "https://my.proxy/abs"
+  );
+});
+
+test("/v1$ 边界匹配不会误判 /v1beta（gemini 不会被走成 openai chat 风格）", () => {
+  // gemini 渠道下，/v1beta 应被识别为已带 versionSeg，不再追加
+  assert.equal(
+    buildEndpointPreview("gemini", "https://generativelanguage.googleapis.com/v1beta", "gemini-2.0-flash"),
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+  );
+});
+
+test("base 为空时给占位提示，不拼出畸形 /chat/completions", () => {
+  const preview = buildEndpointPreview("openai_chat", "", "");
+  assert.equal(preview, "—");
+});

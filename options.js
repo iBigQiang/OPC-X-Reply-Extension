@@ -21,13 +21,13 @@ const PROVIDER_DEFAULTS = {
 };
 
 const PROVIDER_BASE_HINTS = {
-  openai_chat:      "填到 /v1 这一级，例如 https://api.openai.com/v1。",
-  openai_responses: "填到 /v1 这一级，例如 https://api.openai.com/v1。",
-  gemini:           "填到 /v1beta 这一级，例如 https://generativelanguage.googleapis.com/v1beta；扩展会自动拼上 /models/{model}:generateContent。",
-  anthropic:        "填到域名根，例如 https://api.anthropic.com 或 https://api.deepseek.com/anthropic；扩展会自动拼上 /v1/messages。",
-  newapi:           "填你部署的 New API 实例地址到 /v1 这一级，例如 https://newapi.hitu.me/v1。",
-  sub2api:          "填你部署的 Sub2API 实例地址到 /v1 这一级，例如 https://demo.sub2api.org/v1。",
-  api2d:            "API2D 官方地址：https://oa.api2d.net/v1。",
+  openai_chat:      "可填根域名或带 /v1，例如 https://api.openai.com 或 https://api.openai.com/v1，扩展会自动补 /chat/completions。末尾加 # 强制按完整 URL 处理。",
+  openai_responses: "可填根域名或带 /v1，例如 https://api.openai.com，扩展会自动补 /responses。末尾加 # 强制按完整 URL 处理。",
+  gemini:           "可填根域名或带 /v1beta，例如 https://generativelanguage.googleapis.com，扩展会自动补 /v1beta/models/{model}:generateContent。末尾加 # 强制按完整 URL 处理。",
+  anthropic:        "可填根域名或带 /v1，例如 https://api.anthropic.com 或 https://api.deepseek.com/anthropic，扩展会自动补 /v1/messages。末尾加 # 强制按完整 URL 处理。",
+  newapi:           "可填根域名或带 /v1，例如 https://newapi.hitu.me，扩展会自动补 /v1/chat/completions。",
+  sub2api:          "可填根域名或带 /v1，例如 https://demo.sub2api.org，扩展会自动补 /v1/chat/completions。",
+  api2d:            "可填 https://oa.api2d.net 或 https://oa.api2d.net/v1，扩展会自动补 /v1/chat/completions。",
   custom:           "自定义渠道下，请直接填写完整 endpoint URL（含路径），例如 https://api.example.com/v1/chat/completions。"
 };
 
@@ -53,29 +53,66 @@ function emptyProviderProfiles() {
   return out;
 }
 
-// 8 个 provider 走的真实 endpoint —— 与 background.js 的 buildRequestUrl 一一对应。
+// 8 个 provider 走的真实 endpoint —— 与 background.js 的 buildFinalEndpoint 一一对应。
+// v2.1.3 起支持自动补全：用户填根域名 / /v1 / /v1/ / 完整 endpoint / 末尾 # 透传 都能正确归一化。
 // 修改时务必同时改 background.js，否则预览跟实际请求会对不上。
+// 改这里前先看 docs/开发及迭代方案调研报告/2026-05-19-v2.1.3-Base-URL-自动补全归一化.md
 function buildEndpointPreview(provider, base, model, customProtocol) {
-  const trimmed = String(base || "").trim().replace(/\/+$/, "");
-  const modelLabel = String(model || "").trim() || "{model}";
-
-  switch (provider) {
-    case "openai_chat":
-    case "newapi":
-    case "sub2api":
-    case "api2d":
-      return `${trimmed}/chat/completions`;
-    case "openai_responses":
-      return `${trimmed}/responses`;
-    case "gemini":
-      return `${trimmed}/models/${modelLabel}:generateContent`;
-    case "anthropic":
-      return `${trimmed}/v1/messages`;
-    case "custom":
-      return trimmed || "（自定义：请填写完整 endpoint URL）";
-    default:
-      return `${trimmed}/chat/completions`;
+  // custom 渠道完全透传：用户必须自己填完整 endpoint URL
+  if (provider === "custom") {
+    const trimmed = String(base || "").trim().replace(/\/+$/, "");
+    return trimmed || "（自定义：请填写完整 endpoint URL）";
   }
+
+  // 每个 provider 的 endpoint 拆为 versionSeg + endpointTail
+  const PATH_SPEC = {
+    openai_chat:      { versionSeg: "/v1",     endpointTail: "/chat/completions" },
+    openai_responses: { versionSeg: "/v1",     endpointTail: "/responses" },
+    newapi:           { versionSeg: "/v1",     endpointTail: "/chat/completions" },
+    sub2api:          { versionSeg: "/v1",     endpointTail: "/chat/completions" },
+    api2d:            { versionSeg: "/v1",     endpointTail: "/chat/completions" },
+    anthropic:        { versionSeg: "/v1",     endpointTail: "/messages" },
+    gemini:           { versionSeg: "/v1beta", endpointTail: "/models/{model}:generateContent" }
+  };
+
+  const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  const raw = String(base || "").trim();
+  if (!raw) return "—";
+
+  // 1. # 终止符（Cherry Studio 风格）：用户显式声明完整 URL，仅去掉末尾 # 和 /
+  if (raw.endsWith("#")) {
+    return raw.slice(0, -1).replace(/\/+$/, "") || "—";
+  }
+
+  // 2. 去掉末尾 0+ 个 /
+  const trimmed = raw.replace(/\/+$/, "");
+
+  // 3. 未知 provider 兜底为 openai_chat 风格
+  const spec = PATH_SPEC[provider] || PATH_SPEC.openai_chat;
+
+  // 4. 用户已填完整 endpoint：识别并透传
+  if (provider === "gemini") {
+    if (/\/models\/[^/]+:generateContent$/i.test(trimmed)) return trimmed;
+  } else {
+    const fullSuffix = (spec.versionSeg + spec.endpointTail).toLowerCase();
+    if (trimmed.toLowerCase().endsWith(fullSuffix)) return trimmed;
+  }
+
+  // 5. 用户已以 versionSeg 结尾：直接拼 endpointTail
+  // 精确末尾匹配：/v1$ 不会误判 /v1beta
+  const versionEndRe = new RegExp(escapeRe(spec.versionSeg) + "$", "i");
+  const baseWithVersion = versionEndRe.test(trimmed)
+    ? trimmed
+    : trimmed + spec.versionSeg;
+
+  // 6. 拼 endpointTail（gemini 替换 {model} 占位）
+  let tail = spec.endpointTail;
+  if (provider === "gemini") {
+    const modelLabel = String(model || "").trim() || "{model}";
+    tail = tail.replace("{model}", modelLabel);
+  }
+  return baseWithVersion + tail;
 }
 
 if (typeof globalThis !== "undefined") {
