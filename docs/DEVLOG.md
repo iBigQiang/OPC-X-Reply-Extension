@@ -5,6 +5,38 @@
 
 ---
 
+## v2.1.2 — 2026-05-19 — API Key 输入框加密码可见性切换（小眼睛）
+
+**确定方案**
+
+用户配置 API Key 经常因为粘贴时多了空格、漏了字符或 fk/sk 前缀混淆而保存了一个「看不见的错」。`<input id="apiKey" type="password">` 永远以圆点显示，没法快速核对粘进去的内容。本次给 API Key 输入框右端加一个小眼睛切换按钮，点击在 `password` ↔ `text` 之间切换，**默认仍是 `password`**，不退化安全默认。详细方案见 `docs/开发及迭代方案调研报告/2026-05-19-v2.1.2-API-Key-可见性切换.md`。
+
+**实施细节**
+
+- `options.html`
+  - `<style>` 段末尾新增 `.input-with-toggle` / `.visibility-toggle` 规则：wrapper 相对定位、按钮绝对定位到右内侧 6px，圆角 10px、透明背景、hover 变青蓝、`focus-visible` 给青色 outline 环
+  - `.input-with-toggle > input` 单独加 `padding-right: 44px`（不动全局 input 样式，不影响其他字段）
+  - 用 `aria-pressed="true"` 切两个 inline SVG（`.eye-open` / `.eye-off`）的 display，避免外部图标资源
+  - API Key input 包到 `<div class="input-with-toggle">` 内，紧跟一个 `<button id="apiKeyToggle" type="button" aria-pressed="false" aria-label="显示 API Key">`，两个 SVG（open-eye / eye-off）作为子元素
+- `options.js`
+  - 末尾追加 `$("apiKeyToggle").addEventListener("click", ...)`：判断当前 input.type，切到 password / text，同步 `aria-pressed` 与 `aria-label`
+- `tests/options-html.test.mjs`（**新增**，5 条用例）
+  - 断言 `<input id="apiKey">` 默认 `type="password"` + `autocomplete="off"`
+  - 断言 wrapper 结构包住 input 与切换按钮
+  - 断言切换按钮初始 a11y 属性：`type="button"` / `aria-pressed="false"` / `aria-label="显示 API Key"`
+  - 断言 CSS 段有相关规则且按 `aria-pressed` 切 SVG
+  - 断言 options.js 绑定了 click 事件并切 type / aria-pressed / aria-label
+- `manifest.json` v2.1.1 → v2.1.2，description 末尾补「API Key 输入框支持密码可见性切换」
+- `OPC-X-Reply-Extension.zip` 由 `bash pack.sh` 重打
+- **不动** background.js / content.js / content.css / 任何 v2.1.0 引入的 provider 逻辑；CLAUDE.md 不动（不涉及新规则）
+- 不触发 Impeccable 全审（局部交互增强，未改页面结构 / 信息架构 / 配色 / 排版），不跑 /btw（补丁级）
+
+**状态**
+
+代码与测试已交付。`node --test tests/*.test.mjs` 25/25 全绿（原 20 + 新 5）。Chrome 实测项：装载新 zip → 打开 options → 点击 API Key 右端小眼睛，确认在「圆点」与「明文」之间切换、aria-label 变化、键盘 Tab 顺序正常，并目视确认按钮跟玻璃拟态风协调、hover/focus 状态友好。
+
+---
+
 ## v2.1.1 — 2026-05-19 — v2.1.0 收尾微调（作者署名统一 + provider 文案 + Base URL 上移）
 
 **确定方案**

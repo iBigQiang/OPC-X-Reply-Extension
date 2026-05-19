@@ -289,4 +289,13 @@ $("apiBase").addEventListener("input", updatePreview);
 $("model").addEventListener("input", updatePreview);
 $("customProtocol").addEventListener("change", updatePreview);
 
+$("apiKeyToggle").addEventListener("click", () => {
+  const input = $("apiKey");
+  const toggle = $("apiKeyToggle");
+  const willShow = input.type === "password";
+  input.type = willShow ? "text" : "password";
+  toggle.setAttribute("aria-pressed", String(willShow));
+  toggle.setAttribute("aria-label", willShow ? "隐藏 API Key" : "显示 API Key");
+});
+
 load();
