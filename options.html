@@ -295,7 +295,7 @@
         <img class="logo" src="img/Qiangge.jpg" alt="X 推文互动回复器" />
         <div>
           <h1>X 推文互动回复器</h1>
-          <div class="author">作者：<b>BigQiang & Akiii</b> <span class="muted">|</span> <b>@iBigQiang，@Guomin184935</b></div>
+          <div class="author">作者：<b><a href="https://x.com/iBigQiang" target="_blank">强子手记</a> @iBigQiang & <a href="https://x.com/Guomin184935" target="_blank">Akiii</a> @Guomin184935</b></div>
         </div>
       </div>
       <div class="tagline">智能 AI 回复生成助手 · 一次 3 条候选，先编辑草稿，再填入 X</div>
@@ -316,10 +316,10 @@
       <div class="section-title"><span class="icon">⌁</span>API 设置</div>
       <label for="provider">接口类型</label>
       <select id="provider">
-        <option value="openai_chat">OpenAI-Chat</option>
-        <option value="openai_responses">OpenAI-Response</option>
+        <option value="openai_chat">兼容OpenAI-Chat</option>
+        <option value="openai_responses">兼容OpenAI-Response</option>
         <option value="gemini">Gemini</option>
-        <option value="anthropic">Anthropic</option>
+        <option value="anthropic">兼容Anthropic</option>
         <option value="newapi">New API</option>
         <option value="sub2api">Sub2API</option>
         <option value="api2d">api2d</option>
@@ -338,6 +338,11 @@
         <div class="hint">自定义渠道下，Base URL 请填写完整 endpoint，例如 https://api.deepseek.com/anthropic/v1/messages。</div>
       </div>
 
+      <label for="apiBase">Base URL</label>
+      <input id="apiBase" type="text" placeholder="https://api.openai.com/v1" />
+      <div class="hint" id="apiBaseHint">填写到对应渠道文档要求的层级；不要填控制台首页或 Web 站点首页。</div>
+      <div class="hint" id="apiBasePreview" style="color:rgba(214,231,242,.58);font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;font-size:11.5px;word-break:break-all;">完整 API_Base_URL 预览：—</div>
+
       <label for="apiKey">API Key</label>
       <input id="apiKey" type="password" placeholder="OpenAI: sk- / sk-proj-，API2D: fk..." autocomplete="off" />
       <div class="hint">官方 OpenAI Key 通常是 sk- 或 sk-proj- 开头；fk 开头一般是 API2D / 中转 Key，会自动切到 API2D。每个渠道单独保存，不会互相覆盖。</div>
@@ -355,11 +360,6 @@
           </select>
         </div>
       </div>
-
-      <label for="apiBase">Base URL</label>
-      <input id="apiBase" type="text" placeholder="https://api.openai.com/v1" />
-      <div class="hint" id="apiBaseHint">填写到对应渠道文档要求的层级；不要填控制台首页或 Web 站点首页。</div>
-      <div class="hint" id="apiBasePreview" style="color:rgba(214,231,242,.58);font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;font-size:11.5px;word-break:break-all;">完整 API_Base_URL 预览：—</div>
     </section>
 
     <section class="card">
@@ -396,7 +396,7 @@
       <span class="status" id="status"></span>
     </div>
 
-    <div class="footer">由 BigQiang & Akiii  设计与开发 · 愿 AI 与你同在 ✦</div>
+    <div class="footer">由 <a href="https://x.com/iBigQiang" target="_blank">强子手记</a> & <a href="https://x.com/Guomin184935" target="_blank">Akiii</a> 设计与开发 · 愿 AI 与你同在 ✦</div>
   </div>
 
   <script src="options.js"></script>

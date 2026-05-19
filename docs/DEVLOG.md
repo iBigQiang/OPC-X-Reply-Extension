@@ -5,6 +5,33 @@
 
 ---
 
+## v2.1.1 — 2026-05-19 — v2.1.0 收尾微调（作者署名统一 + provider 文案 + Base URL 上移）
+
+**确定方案**
+
+v2.1.0 commit (`0fba933`) 在 push 之后又陆续手动调了 4 个文件：作者署名口径升级、`provider` 选项加「兼容」前缀、Base URL 输入框位置上移、`迭代需求1.md` 末尾误留空 `<a>`。这些散落改动需要收拢成一个补丁版本走完 `/ship`，避免 zip 与代码版本号脱节。同时把 `CLAUDE.md`「作者署名（固定）」段落同步到最新口径，杜绝未来被回退。详细方案见 `docs/开发及迭代方案调研报告/2026-05-19-v2.1.1-收尾微调.md`。
+
+**实施细节**
+
+- `content.js` 543 行草稿窗副标题：`作者：强子手记 & Akiii` → `作者：强子手记 @iBigQiang & Akiii @Guomin184935`（补回 @ handle）
+- `README.md` 来源与致谢段：`@iBigQiang，@Guomin184935` → `强子手记 @iBigQiang & Akiii @Guomin184935`
+- `options.html` hero（298 行）保持 v2.1.0 push 后的「带 X 链接的强子手记 + Akiii」版本，无需再改
+- `options.html` footer（399 行）保持「由 强子手记 & Akiii 设计与开发」精简别名版（不加 @ handle —— 跟「作者」语义不同）
+- `options.html` provider select 三项保留「兼容 OpenAI-Chat / 兼容 OpenAI-Response / 兼容 Anthropic」前缀，表达"用同协议接入同类接口"的兼容含义
+- `options.html` Base URL 输入框 + 预览节点保持在 API Key **之前**（v2.1.0 push 后的位置），让用户先确定 endpoint 再贴 Key
+- `docs/.../迭代需求1.md` 末尾删除 `<a href="" target="_blank"></a>` 与多余空行
+- `CLAUDE.md`「作者署名（固定）」段落重写：明确三处统一口径，并补一句 footer 与「作者」语义不同
+- `manifest.json` v2.1.0 → v2.1.1（description 仍是 v2.1 的 8 渠道说明，无需重写）
+- `OPC-X-Reply-Extension.zip` 由 `bash pack.sh` 重打
+- 不动 `background.js` / `options.js` / `content.css` / 任何测试代码（已验证 `tests/` 无作者署名字符串断言）
+- 不触发 Impeccable 多子技能审查（本次只是文案 + 位置微调，无新页面、无新交互），不跑 /btw（补丁级，未达"中大型迭代"门槛）
+
+**状态**
+
+代码与文档已交付。`node --test tests/*.test.mjs` 预期仍 20/20 全绿（本次未改任何被测代码路径）。Chrome 实测项降级为：装载新 zip 后打开 options 与草稿窗，目视确认三处作者署名口径一致，并验证 v2.1.0 已经通过的 8 渠道生成 / Base URL 实时预览仍正常。
+
+---
+
 ## v2.1.0 — 2026-05-19 — 多渠道接口扩展 + Base URL 预览 + 配置缓存 + UI 微调
 
 **确定方案**

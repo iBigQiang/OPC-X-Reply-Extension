@@ -8,7 +8,7 @@ OPC-X-Reply-Extension 是一个用于 X / Twitter 的 AI 推文互动回复 Chro
 
 - 原项目：[Akiii-v-1.9](https://github.com/futakocui008/Akiii-v-1.9)
 - 原作者：Akiii / [@Guomin184935](https://x.com/Guomin184935)
-- 本项目在上游基础上继续优化，当前可见署名保留为：`BigQiang & Akiii | @iBigQiang，@Guomin184935`
+- 本项目在上游基础上继续优化，当前可见署名保留为：`强子手记 @iBigQiang & Akiii @Guomin184935`
 
 ## 项目定位
 

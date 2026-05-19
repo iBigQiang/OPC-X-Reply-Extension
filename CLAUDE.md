@@ -147,9 +147,15 @@ bash pack.sh
 
 ## 作者署名（固定）
 
-- options.html hero：`作者：@iBigQiang，@Guomin184935`
-- 草稿窗副标题（`content.js` 543 行）：同上
-- 改 UI 时不要顺手删掉
+三处统一为「**强子手记 @iBigQiang & Akiii @Guomin184935**」：
+
+- `options.html` hero（约 298 行）：带 X 主页链接的版本：`作者：<a href="https://x.com/iBigQiang">强子手记</a> @iBigQiang & <a href="https://x.com/Guomin184935">Akiii</a> @Guomin184935`
+- 草稿窗副标题（`content.js` 543 行）：纯文本版本：`作者：强子手记 @iBigQiang & Akiii @Guomin184935`
+- `README.md` 来源与致谢段：`当前可见署名保留为：强子手记 @iBigQiang & Akiii @Guomin184935`
+
+`options.html` footer（约 399 行）是「设计与开发」署名，保持「**强子手记 & Akiii**」带链接的精简别名形式即可，**不**额外加 @ handle —— 跟「作者」那一行语义不同。
+
+改 UI 时不要顺手删掉，不要回退到 v2.0 的 `BigQiang & Akiii` 或 v2.1.0 中间过渡版的 `@iBigQiang，@Guomin184935`。
 
 ## 相关文档
 

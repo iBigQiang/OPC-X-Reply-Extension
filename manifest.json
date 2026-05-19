@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "X 推文互动回复器",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "X 推文互动回复器 v2.1：支持 8 个 API 渠道（OpenAI-Chat/Response、Gemini、Anthropic、New API、Sub2API、api2d、自定义），每个渠道独立配置缓存，Base URL 实时预览。一次生成 3 条可编辑回复候选，手动选择复制或填入，不自动发送。",
   "icons": {
     "16": "img/i_16.png",

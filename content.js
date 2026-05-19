@@ -540,7 +540,7 @@
       <div class="akiii-draft-head">
         <div>
           <div class="akiii-draft-title">X 推文互动回复器 v2.0</div>
-          <div class="akiii-draft-sub">作者：BigQiang & Akiii | @iBigQiang，@Guomin184935<br>一次生成 3 条候选。先改满意，再填入 X。</div>
+          <div class="akiii-draft-sub">作者：强子手记 @iBigQiang & Akiii @Guomin184935<br>一次生成 3 条候选。先改满意，再填入 X。</div>
         </div>
         <button type="button" class="akiii-draft-close" aria-label="关闭">×</button>
       </div>
