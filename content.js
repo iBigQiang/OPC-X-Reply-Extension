@@ -536,9 +536,11 @@
 
     const panel = document.createElement('div');
     panel.className = 'akiii-draft-panel';
+    const logoUrl = chrome.runtime.getURL('img/Qiangge.png');
     panel.innerHTML = `
       <div class="akiii-draft-head">
-        <div>
+        <img class="akiii-draft-logo" src="${logoUrl}" alt="" draggable="false" />
+        <div class="akiii-draft-head-text">
           <div class="akiii-draft-title">X 推文互动回复器 v2.0</div>
           <div class="akiii-draft-sub">作者：强子手记 @iBigQiang & Akiii @Guomin184935<br>一次生成 3 条候选。先改满意，再填入 X。</div>
         </div>

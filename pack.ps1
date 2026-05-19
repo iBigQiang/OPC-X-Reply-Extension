@@ -50,11 +50,17 @@ try {
             [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $_.FullName, $rel, $level) | Out-Null
         }
 
-    # 3) Entire img/ directory, preserving the img/ prefix
-    Get-ChildItem -Path (Join-Path $ScriptDir 'img') -Recurse -File | ForEach-Object {
-        $rel = 'img/' + $_.Name
-        [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $_.FullName, $rel, $level) | Out-Null
-    }
+    # 3) Entire img/ directory, preserving the img/ prefix.
+    #    Skip backup background images named like `options_bg2.png`, `options_bg3.png` ...
+    #    (the active background is `options_bg.png`; numeric-suffixed siblings are local
+    #    备选图 the user keeps around but doesn't ship — same spirit as the .txt whitelist
+    #    above which excludes 额外提示词1.txt / 额外提示词2.txt).
+    Get-ChildItem -Path (Join-Path $ScriptDir 'img') -Recurse -File |
+        Where-Object { $_.Name -notmatch '^options_bg\d+\.png$' } |
+        ForEach-Object {
+            $rel = 'img/' + $_.Name
+            [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $_.FullName, $rel, $level) | Out-Null
+        }
 } finally {
     $zip.Dispose()
 }

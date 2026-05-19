@@ -21,3 +21,19 @@ yarn-error.log*
 
 # Claude / 本地规划草稿（仅本机使用，不入库）
 .claude/
+
+# 方案调研报告 / 迭代需求草稿（仅本机使用，不入库）
+# 历史教训：2026-05-18 曾把含真实 DeepSeek API Key 的迭代需求草稿误推到 GitHub
+# 被 GitGuardian 检出。此目录从此不进仓库，避免类似事故重演。
+docs/开发及迭代方案调研报告/
+
+# 密钥 / 凭据相关防御性规则（即使没在用也提前挡住）
+*.env
+.env.*
+secrets.*
+*.secret
+*.key
+*.pem
+*credentials*
+*api_key*
+*apikey*

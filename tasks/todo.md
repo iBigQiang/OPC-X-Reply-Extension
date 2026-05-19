@@ -1,26 +1,32 @@
-# v2.1.3 — Base URL 智能自动补全归一化（学习 Cherry Studio）
+# v2.1.4 — hero 区作者超链接去样式 + 背景图替换收尾 + section-title 图标 lucide 化 + 修复 API Key 泄露事故
 
 ## 任务清单
 
-- [x] 读完背景：CLAUDE.md / DEVLOG / 现有 buildEndpointPreview 与 background.js 拼接逻辑 / 现有 25 条单测覆盖面
-- [x] 子代理联网调研：Cherry Studio Base URL 规则 + 6 个官方 endpoint 路径核对 + DeepSeek Anthropic 入口确认
-- [x] 写方案文档 `docs/开发及迭代方案调研报告/2026-05-19-v2.1.3-Base-URL-自动补全归一化.md`
-- [x] `options.js` 重写 `buildEndpointPreview`：内联 PATH_SPEC + 归一化算法，支持根域名 / /v1 / /v1/ / 完整 endpoint / # 终止符
-- [x] `background.js` 新增 `buildFinalEndpoint`（同款逻辑），删除死代码 `buildRequestUrl`，重构 4 个 request 函数和 `callModel`
-- [x] `options.js` `PROVIDER_BASE_HINTS` 升级文案告知用户新的兼容能力
-- [x] `options.html` fallback `apiBaseHint` 文案同步升级
-- [x] `tests/endpoint-preview.test.mjs` 新增 10 条用例（根域名/v1/完整/`#`/边界）
-- [x] `tests/background.test.mjs` 新增 5 条用例覆盖实际 fetch URL
-- [x] 跑 `node --test tests/*.test.mjs`：41/41 全绿（原 25 + 新 16）
-- [x] `manifest.json` 升 v2.1.3，description 补一句
-- [x] `docs/DEVLOG.md` 追加 v2.1.3 章节
+- [x] `options.html` 加 `.author a` 系列 CSS 让 hero 区作者那一行的两个 `<a>` 链接显示得跟普通文字一致（无下划线、继承父色，hover 微淡）
+- [x] **不动 footer**（用户明确范围限于 hero 区作者那一行）
+- [x] 接受用户已做的视觉调整：背景图 `img/akiii_bg.jpg` → `img/options_bg.png`（options.html + content.css）、暗化层 alpha 调淡
+- [x] `manifest.json` 升 v2.1.4 + 用户改的 `web_accessible_resources`（已替换图片名）一并纳入
+- [x] 替换 3 个 section-title 占位字符为 lucide inline SVG：`✎`/`⌁`/`Aa` → `square-pen`/`plug`/`sliders-horizontal`；新增 `.section-title .icon svg` 14×14 尺寸规则
+- [x] **修复 API Key 泄露事故**
+  - [x] 脱敏 `docs/开发及迭代方案调研报告/迭代需求1.md:14` 里的真实 DeepSeek Key
+  - [x] `.gitignore` 加 `docs/开发及迭代方案调研报告/` + 一组防御性密钥规则
+  - [x] `git rm -r --cached docs/开发及迭代方案调研报告/` 让 git 不再追踪
+  - [ ] `git filter-repo --path "docs/开发及迭代方案调研报告/" --invert-paths` 重写所有历史 commit
+  - [ ] `git push --force-with-lease origin main` 覆盖远端
+- [x] `docs/DEVLOG.md` 追加 v2.1.4 章节（含图标 + 安全事故修复）
+- [ ] 跑 `node --test tests/*.test.mjs`：预期 41/41
 - [ ] `bash pack.sh` 重打 `OPC-X-Reply-Extension.zip`
-- [ ] `git add` + `git commit` + `git push`（走 `/ship`）
-- [ ] **Chrome 实测（用户跑）**：装载新 zip → options 页 → 三种粒度（根域名 / 带 /v1 / 带 /v1/）切换各渠道，实时预览 URL 应一致；任选 2-3 个渠道点 AI回 实际生成成功；故意配错的 base 仍能报"Base URL 可能填成了首页"
+- [ ] `git add` + `git commit`（v2.1.4 + 图标 + .gitignore + git rm --cached + DEVLOG + todo + zip）
+- [ ] **Chrome 实测（用户跑）**：装载新 zip → hero 区作者那一行的「强子手记」「Akiii」无下划线无蓝色，hover 微淡；新背景图正常显示；3 个 section-title 左侧 lucide 图标清晰可见
+- [ ] **用户手动**：到 https://platform.deepseek.com 撤销已泄露的 Key（具体值在 GitGuardian 邮件中）
 
 ## 摘要
 
-参考 Cherry Studio 的 Base URL 兼容方案，让 7 个标准 provider（openai_chat / openai_responses / gemini / anthropic / newapi / sub2api / api2d）都支持用户填根域名 / 带 /v1 / 带 /v1/ / 完整 endpoint 任一粒度，自动归一化到正确请求 URL；额外引入 Cherry Studio 风的 `#` 终止符作为「保留逃生舱」用于走 Azure 风格特殊路径。两侧（options.js 的 `buildEndpointPreview` 和 background.js 的 `buildFinalEndpoint`）共享同款算法。新增 15 条测试用例覆盖各 provider 的 3 种输入粒度 / 完整 URL 透传 / `#` 终止符 / 边界（`/v1$` 不误判 `/v1beta`）。删除 v2.1.0 残留的 `buildRequestUrl` 死代码。
+v2.1.1 给作者署名加了 X 主页超链接，但浏览器默认蓝+下划线在玻璃拟态背景下太突兀。本次给 `.author a` 加 `color: inherit; text-decoration: none;`，hover 用 `opacity: .85` 给一点反馈，`href` 保留可点。范围严格限 hero 区作者那一行（用户明确要求），footer 不动。同时收尾用户已经在做的背景图替换（akiii_bg.jpg → options_bg.png）+ 暗化层调淡。
+
+另外把设置页 3 个 section-title 左侧的 Unicode 占位字符（`✎` / `⌁` / `Aa`）换成 lucide 风格的 inline SVG（`square-pen` / `plug` / `sliders-horizontal`）：`⌁` 在多数字体里 tofu，`Aa` 语义跟「参数面板」对不上，换成线条图标后既清晰又能用 currentColor 继承青色高亮。
+
+**还包含一个严重安全事故修复**：GitGuardian 检出 `docs/开发及迭代方案调研报告/迭代需求1.md:14` 在 v2.1.0 / v2.1.3 提交时硬编码了真实 DeepSeek API Key。本次脱敏当前文件 + `.gitignore` 永久排除该目录 + `git rm --cached` 让 git 停止追踪 + `git filter-repo` 重写所有历史 commit + `force push` 覆盖远端。用户必须额外到 DeepSeek 平台撤销该 Key（爬虫缓存可能已抓取）。
 
 ## 复盘
 

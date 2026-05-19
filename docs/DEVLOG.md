@@ -5,6 +5,61 @@
 
 ---
 
+## v2.1.4 — 2026-05-19 — hero 区作者超链接去样式 + 背景图替换收尾 + section-title 图标 lucide 化 + 修复 API Key 泄露事故
+
+**确定方案**
+
+v2.1.1 把作者署名升级成「强子手记 @iBigQiang & Akiii @Guomin184935」并给两个名字加了 X 主页超链接。但 `<a>` 在 options 玻璃拟态背景下默认是浏览器蓝 + 下划线，跟周围深青/白文字割裂感强。本次去掉两个超链接的视觉效果但保留 `href` 可点。同时收尾用户已经在做的视觉调整：背景图从 `img/akiii_bg.jpg` 换成 `img/options_bg.png`（强哥拍的新底图），并把暗化叠加层的 alpha 从 .70/.92 调到 .20/.4，让新背景图更显出来。
+
+设置页 3 个 section-title 左侧的占位图标本来用的是 Unicode 字符 `✎` / `⌁` / `Aa`：`⌁`（电流符号）在多数字体里渲染成 tofu，`Aa` 跟「回复设置（参数面板）」语义对不上。本次替换成 lucide 风格的 inline SVG：`square-pen` / `plug` / `sliders-horizontal`，currentColor 继承青色高亮，扩展无需联网。
+
+另外修复一个**严重安全事故**：GitGuardian 检出本仓库 v2.1.0 / v2.1.3 提交的 `docs/开发及迭代方案调研报告/迭代需求1.md` 第 14 行硬编码了一把真实 DeepSeek API Key（具体值在邮件正文中，本文档内不再复述），随 push 被发布到公网。问题根因：用户当时把命令行启动 Claude Code 用的 ANTHROPIC_AUTH_TOKEN 配置示例（含真实 Key）原样粘贴到迭代需求 markdown 里作为「自定义协议」示例，没意识到该目录会随 commit 进入公网仓库。本次做四件事彻底闭环：当前工作树脱敏、`.gitignore` 永久排除整个 `docs/开发及迭代方案调研报告/`、`git rm -r --cached` 让 git 不再追踪、`git filter-repo` 重写所有历史 commit 抹掉该目录、force push 覆盖远端。
+
+**实施细节**
+
+- `options.html`
+  - `<style>` 段新增 `.author a` / `.author a:visited` / `.author a:hover` / `.author a:focus`：`color: inherit; text-decoration: none;` + hover 时 `opacity: .85` 给一点反馈
+  - **只动 hero 区作者那一行**（用户明确要求），footer 的「设计与开发」链接保持现状
+  - 用户已做的背景图替换 / 暗化层调淡保留：`img/akiii_bg.jpg` → `img/options_bg.png`，渐变 alpha `.70/.92` → `.20/.4`
+  - 3 个 `.section-title .icon` 占位字符替换为 inline SVG：
+    - 「回复内容（可编辑）」 `✎` → lucide `square-pen`（方框 + 笔），更精准表达「可编辑文档」语义
+    - 「API 设置」 `⌁` → lucide `plug`（插头），表达「接口/连接器」，避开 `⌁` 在多数字体下 tofu 的问题
+    - 「回复设置」 `Aa` → lucide `sliders-horizontal`（三条横向滑块），表达「参数面板」
+  - `<style>` 段新增 `.section-title .icon svg { width: 14px; height: 14px; display: block; }`，控制 SVG 在 24×24 玻璃方块容器内的尺寸；外层容器、底色渐变、青色 currentColor 保持不变
+- `content.css`
+  - 用户已做的草稿窗背景图替换 / 暗化层调淡保留：`img/akiii_bg.jpg` → `img/options_bg.png`，alpha `.62/.88` → `.2/.4`
+- `manifest.json`
+  - v2.1.3 → v2.1.4
+  - 用户已做的 `web_accessible_resources` 同步更新（删 `akiii_bg.jpg` 加 `options_bg.png`）保留
+- `README.md`
+  - 用户已做的署名升级 + 文件结构里背景图重命名保留
+- 图片资源
+  - `img/akiii_bg.jpg` 删除（被 `options_bg.png` 替代）
+  - `img/miku_bg.svg` 删除（v2.0 起从未在任何代码里被引用，仅出现在 manifest 的 web_accessible_resources 和 README 文件结构里；本次顺手清理三处冗余）
+  - `img/options_bg.png` 新增（已纳入打包）
+  - `img/options_bg2.png` 保持 untracked 本地备份状态，不进仓库也不进 zip
+- `pack.ps1`
+  - img/ 打包逻辑加白名单：`options_bg<数字>.png` 模式的备选图不进 zip（跟现有 `.txt` 白名单"含数字=备份"风格一致）
+- `manifest.json` / `README.md`
+  - 跟着 `miku_bg.svg` 删除，从 `web_accessible_resources` 和 README 文件结构里同步移除引用
+- `OPC-X-Reply-Extension.zip` 由 `bash pack.sh` 重打（3530 KB）
+- **API Key 泄露事故修复**
+  - `docs/开发及迭代方案调研报告/迭代需求1.md:14` 真实 Key 脱敏为 `sk-******************`
+  - `.gitignore` 加规则：
+    - `docs/开发及迭代方案调研报告/`（整个目录从此不进仓库；附三行注释说明历史教训）
+    - 防御性规则：`*.env` / `.env.*` / `secrets.*` / `*.secret` / `*.key` / `*.pem` / `*credentials*` / `*api_key*` / `*apikey*`
+  - `git rm -r --cached docs/开发及迭代方案调研报告/` —— 让 git 不再追踪这 6 个 markdown，本地文件保留（用户的迭代调研草稿，本地有用）
+  - `git filter-repo --path "docs/开发及迭代方案调研报告/" --invert-paths` 重写所有历史 commit，抹掉该目录在 17 个 commit 中的所有版本；所有 commit SHA 改变
+  - `git push --force-with-lease origin main` 把清理后的历史推到 GitHub，覆盖远端被泄露的版本
+
+**状态**
+
+代码已交付。`node --test tests/*.test.mjs` 41/41 全绿（本次只改 CSS / HTML 图标节点 / 版本号 / 文档，未触及任何被测代码路径）。Chrome 实测项：装载新 zip → 打开 options → hero 区作者那一行的「强子手记」「Akiii」应跟普通文字一样无下划线无蓝色（鼠标 hover 微微变淡）；新背景图应正常显示；3 个 section-title 左侧应能看到清晰的 lucide 线条图标（青色，宽高 14px）；footer 的链接仍是浏览器默认样式（不在本次范围）。
+
+**用户必须手动跟进**：到 https://platform.deepseek.com 撤销已泄露的 Key（具体值在 GitGuardian 邮件中）。即使 GitHub 历史已彻底重写，第三方爬虫和搜索引擎缓存可能已抓取该 Key 副本，仅靠重写历史不能阻止他人盗用。撤销动作只能在 DeepSeek 平台完成，扩展和仓库都帮不上忙。
+
+---
+
 ## v2.1.3 — 2026-05-19 — Base URL 智能自动补全归一化（学习 Cherry Studio）
 
 **确定方案**

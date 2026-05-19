@@ -204,9 +204,8 @@ OPC-X-Reply-Extension/
 │   ├── i_48.png
 │   ├── i_128.png
 │   ├── i_256.png
-│   ├── akiii_bg.jpg
-│   ├── Qiangge.jpg
-│   └── miku_bg.svg
+│   ├── options_bg.png
+│   └── Qiangge.png
 └── tests/
     ├── background.test.mjs
     ├── content-css.test.mjs
