@@ -48,3 +48,48 @@ test("insert action targets the dialog textbox and the cached editor when both a
   assert.match(clickHandler, /const targets = await getInsertTargets\(editor,\s*2500\);/);
   assert.match(clickHandler, /for \(const target of targets\)/);
 });
+
+test("composer injection scans X post buttons even when X splits them out of the toolbar", () => {
+  const scan = functionBlock("scan");
+  const inject = functionBlock("injectComposerButton");
+
+  assert.match(source, /const POST_BUTTON_SELECTOR = /);
+  assert.match(scan, /querySelectorAll\(POST_BUTTON_SELECTOR\)\]\.forEach\(injectComposerButton\)/);
+  assert.match(inject, /getComposerRoot\(anchor\)/);
+  assert.match(inject, /querySelector\?\.\(POST_BUTTON_SELECTOR\)/);
+});
+
+test("composer injection also scans inline reply textboxes on status pages", () => {
+  const scan = functionBlock("scan");
+  const root = functionBlock("getComposerRoot");
+
+  assert.match(source, /const COMPOSER_CONTROL_SELECTOR = /);
+  assert.match(source, /function hasComposerTextbox\(root\)/);
+  assert.match(source, /function hasComposerControls\(root\)/);
+  assert.match(root, /hasComposerTextbox\(node\) && hasComposerControls\(node\)/);
+  assert.match(scan, /findVisibleTextboxes\(document\)\.forEach\(injectComposerButton\)/);
+});
+
+test("composer injection never appends the fill button into textbox-only fallback roots", () => {
+  const root = functionBlock("getComposerRoot");
+  const inject = functionBlock("injectComposerButton");
+
+  assert.match(root, /node = isTextboxElement\(anchor\) \? anchor\.parentElement : anchor;/);
+  assert.match(inject, /if \(!insertion \|\| insertion\.host\.closest\?\.\(TEXTBOX_SELECTOR\)\) return;/);
+  assert.doesNotMatch(inject, /root\.appendChild\(btn\)/);
+});
+
+test("composer injection keeps rescanning when X reveals the status composer without adding nodes", () => {
+  const scan = functionBlock("scan");
+  const init = functionBlock("init");
+  const observerStart = source.indexOf("STATE.observer.observe");
+  assert.notEqual(observerStart, -1, "missing MutationObserver observe call");
+  const observer = source.slice(observerStart, source.indexOf(");", observerStart) + 2);
+
+  assert.match(source, /const INITIAL_SCAN_DELAYS = \[/);
+  assert.match(source, /function scheduleFollowupScans\(\)/);
+  assert.match(init, /scheduleFollowupScans\(\);/);
+  assert.match(scan, /scheduleFollowupScans\(\);/);
+  assert.match(observer, /attributes:\s*true/);
+  assert.match(observer, /attributeFilter:\s*\[/);
+});

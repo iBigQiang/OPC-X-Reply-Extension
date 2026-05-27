@@ -9,10 +9,14 @@
     'div[role="textbox"][aria-label*="Reply"]'
   ].join(',');
   const TOOLBAR_SELECTOR = 'div[data-testid="toolBar"]';
+  const POST_BUTTON_SELECTOR = 'button[data-testid="tweetButton"], button[data-testid="tweetButtonInline"]';
+  const COMPOSER_CONTROL_SELECTOR = `${TOOLBAR_SELECTOR},${POST_BUTTON_SELECTOR}`;
+  const INITIAL_SCAN_DELAYS = [450, 1000, 1800, 3200, 5200];
 
   const STATE = {
     observer: null,
     scanTimer: null,
+    followupScanTimers: [],
     activeRequest: false,
     lastTweet: null,
     pendingTweet: null,
@@ -657,6 +661,38 @@
     return btn;
   }
 
+  function elementMatchesAny(el, selector) {
+    return Boolean(el?.matches?.(selector));
+  }
+
+  function isTextboxElement(el) {
+    return elementMatchesAny(el, TEXTBOX_SELECTOR);
+  }
+
+  function hasComposerTextbox(root) {
+    return elementMatchesAny(root, TEXTBOX_SELECTOR) || Boolean(root?.querySelector?.(TEXTBOX_SELECTOR));
+  }
+
+  function hasComposerControls(root) {
+    return elementMatchesAny(root, COMPOSER_CONTROL_SELECTOR) || Boolean(root?.querySelector?.(COMPOSER_CONTROL_SELECTOR));
+  }
+
+  function getComposerRoot(anchor) {
+    let node = anchor;
+    while (node && node !== document.body) {
+      if (hasComposerTextbox(node) && hasComposerControls(node)) return node;
+      node = node.parentElement;
+    }
+
+    node = isTextboxElement(anchor) ? anchor.parentElement : anchor;
+    while (node && node !== document.body) {
+      if (!isTextboxElement(node) && hasComposerTextbox(node)) return node;
+      node = node.parentElement;
+    }
+
+    return anchor?.closest?.('form') || anchor?.closest?.('div[role="dialog"], main, section') || anchor?.parentElement || null;
+  }
+
   async function runWithButton(btn, job) {
     if (STATE.activeRequest) {
       toast('上一条还在生成，别急', 'error');
@@ -739,36 +775,46 @@
     actionHost.appendChild(btn);
   }
 
-  function injectComposerButton(toolbar) {
-    if (!toolbar || !isVisible(toolbar)) return;
-    if (toolbar.querySelector('.akiii-ai-button.akiii-composer')) return;
-    if (!toolbar.closest('div[role="dialog"], main, section')) return;
+  function injectComposerButton(anchor) {
+    if (!anchor || !isVisible(anchor)) return;
+    const root = getComposerRoot(anchor);
+    if (!root || root.querySelector?.('.akiii-ai-button.akiii-composer')) return;
+    if (!root.closest?.('div[role="dialog"], main, section') && !root.matches?.('form, div[role="dialog"], main, section')) return;
 
-    const formLike = toolbar.closest('form') || toolbar.parentElement?.parentElement || toolbar.parentElement;
-    const box = formLike?.querySelector?.(TEXTBOX_SELECTOR) || getBestTextbox();
+    const box = root.querySelector?.(TEXTBOX_SELECTOR) || getBestTextbox();
     if (!box) return;
+
+    const postButton = root.querySelector?.(POST_BUTTON_SELECTOR) || (anchor.matches?.(POST_BUTTON_SELECTOR) ? anchor : null);
+    const toolbar = root.querySelector?.(TOOLBAR_SELECTOR) || (anchor.matches?.(TOOLBAR_SELECTOR) ? anchor : null);
+    const insertion = postButton?.parentElement
+      ? { host: postButton.parentElement, before: postButton }
+      : toolbar
+        ? { host: toolbar, before: null }
+        : null;
+    if (!insertion || insertion.host.closest?.(TEXTBOX_SELECTOR)) return;
 
     const btn = createButton('AI填入', 'akiii-composer');
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      runForComposer(toolbar, btn);
+      runForComposer(anchor, btn);
     }, true);
-    const postButton = toolbar.querySelector('button[data-testid="tweetButton"], button[data-testid="tweetButtonInline"]');
-    if (postButton?.parentElement) postButton.parentElement.insertBefore(btn, postButton);
-    else toolbar.appendChild(btn);
+    insertion.host.insertBefore(btn, insertion.before);
   }
 
   function scan() {
     if (!document.body) return;
     [...document.querySelectorAll(ARTICLE_SELECTOR)].forEach(injectArticleButton);
     [...document.querySelectorAll(TOOLBAR_SELECTOR)].forEach(injectComposerButton);
+    [...document.querySelectorAll(POST_BUTTON_SELECTOR)].forEach(injectComposerButton);
+    findVisibleTextboxes(document).forEach(injectComposerButton);
 
     if (location.href !== STATE.lastUrl) {
       STATE.lastUrl = location.href;
       STATE.lastTweet = null;
       STATE.pendingTweet = null;
       STATE.lastInsertedReply = '';
+      scheduleFollowupScans();
     }
   }
 
@@ -777,10 +823,21 @@
     STATE.scanTimer = setTimeout(scan, 260);
   }
 
+  function scheduleFollowupScans() {
+    STATE.followupScanTimers.forEach(clearTimeout);
+    STATE.followupScanTimers = INITIAL_SCAN_DELAYS.map((delay) => setTimeout(scan, delay));
+  }
+
   function init() {
     scan();
+    scheduleFollowupScans();
     STATE.observer = new MutationObserver(scheduleScan);
-    STATE.observer.observe(document.body, { childList: true, subtree: true });
+    STATE.observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class', 'style', 'hidden', 'aria-hidden', 'disabled', 'aria-disabled', 'data-testid', 'role']
+    });
     window.addEventListener('scroll', scheduleScan, { passive: true });
     window.addEventListener('focus', scheduleScan);
     document.addEventListener('click', (e) => {
