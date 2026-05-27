@@ -62,28 +62,35 @@
 }
 
 .akiii-draft-panel {
-  --akiii-action-button-width: 72px;
+  --akiii-action-button-width: 116px;
+  box-sizing: border-box;
   position: fixed;
-  right: 18px;
-  bottom: 18px;
-  z-index: 2147483647;
-  width: min(620px, calc(100vw - 36px));
-  max-height: calc(100vh - 36px);
-  padding: 15px;
-  border-radius: 26px;
+  right: max(12px, env(safe-area-inset-right));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 2147483646;
+  isolation: isolate;
+  width: min(860px, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  max-height: calc(100dvh - 24px);
+  padding: clamp(18px, 2.2vw, 30px);
+  border-radius: 32px;
   color: rgba(238, 251, 255, .96);
   overflow: auto;
   background:
-    linear-gradient(180deg, rgba(4, 10, 22, .2), rgba(5, 12, 25, .4)),
-    radial-gradient(circle at 14% 4%, rgba(98, 243, 255, .28), transparent 32%),
-    radial-gradient(circle at 98% 6%, rgba(255, 114, 189, .24), transparent 36%),
-    url("img/options_bg.png") center 18% / cover no-repeat;
-  border: 1px solid rgba(139, 247, 255, .32);
+    linear-gradient(135deg, rgba(118, 153, 160, .70), rgba(78, 81, 98, .66) 46%, rgba(121, 83, 110, .62)),
+    radial-gradient(circle at 9% 8%, rgba(98, 243, 255, .26), transparent 27%),
+    radial-gradient(circle at 98% 2%, rgba(255, 162, 214, .18), transparent 32%),
+    url("img/options_bg.png") center 18% / cover no-repeat,
+    rgba(25, 34, 48, .72);
+  border: 1px solid rgba(139, 247, 255, .48);
   box-shadow:
-    0 28px 86px rgba(0, 0, 0, .42),
+    0 28px 86px rgba(0, 0, 0, .38),
+    0 8px 30px rgba(98, 243, 255, .12),
     0 0 0 1px rgba(255, 114, 189, .10),
-    inset 0 1px 0 rgba(255,255,255,.14);
-  backdrop-filter: blur(18px) saturate(1.25);
+    inset 0 1px 0 rgba(255,255,255,.28),
+    inset 0 -1px 0 rgba(10, 18, 30, .24);
+  backdrop-filter: blur(24px) saturate(1.28);
+  -webkit-backdrop-filter: blur(24px) saturate(1.28);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 
@@ -92,42 +99,49 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
+  z-index: -2;
   background:
-    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px),
-    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
-    linear-gradient(135deg, rgba(98,243,255,.08), transparent 42%, rgba(255,114,189,.10));
+    linear-gradient(90deg, rgba(196, 239, 247, .10) 1px, transparent 1px),
+    linear-gradient(rgba(196, 239, 247, .08) 1px, transparent 1px),
+    linear-gradient(135deg, rgba(98,243,255,.13), transparent 42%, rgba(255,114,189,.12));
   background-size: 32px 32px, 32px 32px, auto;
 }
 
 .akiii-draft-panel::after {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: 1px;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.38));
+  z-index: -1;
+  border-radius: inherit;
+  border: 1px solid rgba(255, 255, 255, .12);
+  background:
+    linear-gradient(180deg, rgba(4, 10, 22, .14), rgba(4, 9, 18, .28)),
+    radial-gradient(circle at 0 0, rgba(255, 255, 255, .16), transparent 34%);
 }
 
 .akiii-draft-head {
   position: relative;
   z-index: 1;
   display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  margin-bottom: 11px;
+  gap: 18px;
+  align-items: center;
+  margin-bottom: 24px;
 }
 
 .akiii-draft-logo {
   flex-shrink: 0;
-  width: 56px;
-  height: 56px;
-  border-radius: 14px;
+  width: 72px;
+  height: 72px;
+  border-radius: 20px;
   object-fit: cover;
   user-select: none;
   -webkit-user-drag: none;
-  background: rgba(0, 0, 0, .25);
+  background: rgba(0, 0, 0, .22);
   box-shadow:
-    0 2px 8px rgba(0, 0, 0, .35),
-    inset 0 0 0 1px rgba(255, 255, 255, .14);
+    0 12px 28px rgba(0, 0, 0, .22),
+    0 0 0 1px rgba(139, 247, 255, .22),
+    inset 0 1px 0 rgba(255, 255, 255, .22);
 }
 
 .akiii-draft-head-text {
@@ -136,54 +150,72 @@
 }
 
 .akiii-draft-title {
-  font-size: 16px;
+  margin-top: 0;
+  font-size: clamp(22px, 2.2vw, 28px);
   font-weight: 950;
-  letter-spacing: .2px;
-  background: linear-gradient(92deg, #73f7ff 0%, #d8e5ff 42%, #ff72bd 82%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  letter-spacing: 0;
+  line-height: 1.05;
+  color: #8bf7ff;
+  text-shadow: 0 0 24px rgba(98, 243, 255, .24);
 }
 
 .akiii-draft-sub {
-  margin-top: 4px;
-  color: rgba(214, 231, 242, .74);
-  font-size: 12px;
-  line-height: 1.38;
+  margin-top: 8px;
+  color: rgba(226, 241, 249, .74);
+  font-size: clamp(14px, 1.35vw, 17px);
+  font-weight: 760;
+  line-height: 1.32;
+  overflow-wrap: anywhere;
 }
 
 .akiii-draft-close {
   display: inline-grid;
   place-items: center;
-  width: 31px;
-  height: 31px;
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
   padding: 0;
-  border: 1px solid rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.18);
   border-radius: 999px;
-  background: rgba(255,255,255,.08);
+  background: rgba(255,255,255,.14);
   color: rgba(238, 251, 255, .94);
-  font-size: 20px;
+  font-size: 30px;
   font-weight: 850;
   line-height: 1;
   cursor: pointer;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 10px 24px rgba(0, 0, 0, .14);
+  transition: transform .14s ease, background .14s ease, border-color .14s ease;
 }
-.akiii-draft-close:hover { background: rgba(255,255,255,.14); }
+.akiii-draft-close:hover {
+  background: rgba(255,255,255,.22);
+  border-color: rgba(255,255,255,.28);
+  transform: translateY(-1px);
+}
+.akiii-draft-close:active { transform: translateY(0) scale(.98); }
+.akiii-draft-close:focus-visible {
+  outline: 3px solid rgba(98, 243, 255, .52);
+  outline-offset: 3px;
+}
 
 .akiii-draft-list {
   position: relative;
   z-index: 1;
   display: grid;
-  gap: 10px;
+  gap: 22px;
 }
 
 .akiii-draft-candidate {
   position: relative;
-  padding: 11px;
-  border: 1px solid rgba(139, 247, 255, .22);
-  border-radius: 18px;
-  background: rgba(3, 10, 21, .34);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.07);
+  padding: 22px;
+  border: 1px solid rgba(139, 247, 255, .28);
+  border-radius: 28px;
+  background: rgba(19, 27, 40, .56);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.12),
+    inset 0 0 0 1px rgba(255,255,255,.03),
+    0 16px 42px rgba(0, 0, 0, .18);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .akiii-draft-candidate-head {
@@ -191,26 +223,27 @@
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 16px;
   color: rgba(214, 231, 242, .76);
-  font: 850 12px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font: 920 15px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 
 .akiii-draft-candidate-head span {
   display: inline-flex;
   align-items: center;
-  min-height: 20px;
-  padding: 0 9px;
+  min-height: 32px;
+  padding: 0 16px;
   border-radius: 999px;
-  background: rgba(98, 243, 255, .10);
-  border: 1px solid rgba(139, 247, 255, .20);
+  background: rgba(98, 243, 255, .13);
+  border: 1px solid rgba(139, 247, 255, .34);
   color: rgba(238, 251, 255, .84);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
 }
 
 .akiii-draft-candidate-body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) max-content;
-  gap: 16px;
+  gap: 28px;
   align-items: stretch;
 }
 
@@ -218,20 +251,23 @@
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
-  max-width: 500px;
-  justify-self: start;
-  min-height: 88px;
-  max-height: 190px;
+  max-width: none;
+  justify-self: stretch;
+  min-height: 118px;
+  max-height: 220px;
   resize: vertical;
-  padding: 13px 14px;
-  border: 1px solid rgba(139, 247, 255, .34);
-  border-radius: 18px;
+  padding: 22px 24px;
+  border: 1px solid rgba(139, 247, 255, .42);
+  border-radius: 24px;
   outline: none;
-  color: rgba(238, 251, 255, .96);
-  background: rgba(3, 10, 21, .56);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
-  font: 720 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: rgba(244, 252, 255, .98);
+  background: rgba(4, 12, 23, .72);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    inset 0 -1px 0 rgba(0, 0, 0, .20);
+  font: 820 clamp(16px, 1.8vw, 21px)/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
   overflow-wrap: anywhere;
+  scrollbar-color: rgba(188, 216, 226, .72) rgba(255,255,255,.08);
 }
 .akiii-draft-text::placeholder { color: rgba(238,251,255,.42); }
 .akiii-draft-text:focus {
@@ -245,7 +281,7 @@
 .akiii-draft-candidate-actions {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 12px;
   justify-content: center;
   align-items: flex-end;
   justify-self: end;
@@ -258,36 +294,96 @@
   width: var(--akiii-action-button-width);
   border: none;
   border-radius: 999px;
-  min-height: 30px;
-  padding: 5px 0;
-  font: 950 12px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  min-height: 52px;
+  padding: 10px 0;
+  font: 950 17px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
   cursor: pointer;
-  transition: transform .12s ease, filter .12s ease;
+  transition: transform .12s ease, filter .12s ease, border-color .12s ease, box-shadow .12s ease;
   white-space: nowrap;
 }
 .akiii-draft-candidate-actions button:hover { transform: translateY(-1px); filter: brightness(1.04); }
+.akiii-draft-candidate-actions button:active { transform: translateY(0) scale(.98); }
+.akiii-draft-candidate-actions button:focus-visible {
+  outline: 3px solid rgba(98, 243, 255, .52);
+  outline-offset: 3px;
+}
 
 .akiii-draft-insert {
   color: #06101d;
   background: linear-gradient(100deg, #51efff 0%, #7b8cff 48%, #ff72bd 100%);
-  box-shadow: 0 14px 30px rgba(98, 243, 255, .18), 0 12px 36px rgba(255, 114, 189, .14);
+  box-shadow:
+    0 14px 30px rgba(98, 243, 255, .24),
+    0 12px 36px rgba(255, 114, 189, .18),
+    inset 0 1px 0 rgba(255,255,255,.42);
 }
 .akiii-draft-copy {
-  color: rgba(238, 251, 255, .90);
-  background: rgba(255,255,255,.10);
-  border: 1px solid rgba(255,255,255,.12) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+  color: rgba(238, 251, 255, .92);
+  background: rgba(255,255,255,.13);
+  border: 1px solid rgba(255,255,255,.18) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.14);
 }
 .akiii-draft-candidate-actions button:disabled { opacity: .65; cursor: wait; transform: none; }
 
-@media (max-width: 520px) {
+@media (max-width: 760px) {
+  .akiii-draft-panel {
+    right: max(8px, env(safe-area-inset-right));
+    bottom: max(8px, env(safe-area-inset-bottom));
+    width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+    max-height: calc(100dvh - 16px);
+    padding: 16px;
+    border-radius: 24px;
+  }
+
+  .akiii-draft-head {
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .akiii-draft-logo {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+  }
+
+  .akiii-draft-close {
+    width: 42px;
+    height: 42px;
+    font-size: 27px;
+  }
+
+  .akiii-draft-list {
+    gap: 14px;
+  }
+
+  .akiii-draft-candidate {
+    padding: 14px;
+    border-radius: 20px;
+  }
+
   .akiii-draft-candidate-body {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .akiii-draft-text {
+    min-height: 112px;
+    padding: 16px;
+    border-radius: 18px;
+    font-size: 16px;
   }
 
   .akiii-draft-candidate-actions {
     flex-direction: row;
     justify-content: flex-end;
     align-items: center;
+    width: 100%;
+  }
+
+  .akiii-draft-candidate-actions button {
+    flex: 1 1 0;
+    min-height: 44px;
+    max-width: 160px;
+    font-size: 15px;
   }
 }

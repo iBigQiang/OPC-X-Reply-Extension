@@ -540,35 +540,56 @@
 
     const panel = document.createElement('div');
     panel.className = 'akiii-draft-panel';
+    panel.setAttribute('role', 'dialog');
+    panel.setAttribute('aria-modal', 'false');
+    panel.tabIndex = -1;
+    const panelId = `akiii-draft-${Date.now()}`;
+    const manifestVersion = chrome.runtime.getManifest?.().version || '2.1.4';
     const logoUrl = chrome.runtime.getURL('img/Qiangge.png');
     panel.innerHTML = `
       <div class="akiii-draft-head">
         <img class="akiii-draft-logo" src="${logoUrl}" alt="" draggable="false" />
         <div class="akiii-draft-head-text">
-          <div class="akiii-draft-title">X 推文互动回复器 v2.0</div>
-          <div class="akiii-draft-sub">作者：强子手记 @iBigQiang & Akiii @Guomin184935<br>一次生成 3 条候选。先改满意，再填入 X。</div>
+          <div class="akiii-draft-title" id="${panelId}-title">X 推文互动回复器 v${manifestVersion}</div>
+          <div class="akiii-draft-sub" id="${panelId}-desc">作者：强子手记 @iBigQiang & Akiii @Guomin184935<br>一次生成 3 条候选。先改满意，再填入 X。</div>
         </div>
         <button type="button" class="akiii-draft-close" aria-label="关闭">×</button>
       </div>
       <div class="akiii-draft-list"></div>
     `;
+    panel.setAttribute('aria-labelledby', `${panelId}-title`);
+    panel.setAttribute('aria-describedby', `${panelId}-desc`);
 
     const list = panel.querySelector('.akiii-draft-list');
     const closeBtn = panel.querySelector('.akiii-draft-close');
-    closeBtn.addEventListener('click', closeDraftPanel);
+    const returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const closePanel = () => {
+      closeDraftPanel();
+      if (returnFocus?.isConnected) returnFocus.focus();
+    };
+    closeBtn.addEventListener('click', closePanel);
+    panel.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        closePanel();
+      }
+    });
 
     replies.forEach((reply, index) => {
       const item = document.createElement('div');
       item.className = 'akiii-draft-candidate';
+      item.setAttribute('role', 'group');
+      item.setAttribute('aria-labelledby', `${panelId}-candidate-${index + 1}`);
       item.innerHTML = `
         <div class="akiii-draft-candidate-head">
-          <span>候选 ${index + 1}</span>
+          <span id="${panelId}-candidate-${index + 1}">候选 ${index + 1}</span>
         </div>
         <div class="akiii-draft-candidate-body">
-          <textarea class="akiii-draft-text" spellcheck="false" placeholder="生成内容会显示在这里，可以先手动修改"></textarea>
+          <textarea class="akiii-draft-text" aria-label="候选 ${index + 1} 回复内容" spellcheck="false" placeholder="生成内容会显示在这里，可以先手动修改"></textarea>
           <div class="akiii-draft-candidate-actions">
-            <button type="button" class="akiii-draft-copy">复制</button>
-            <button type="button" class="akiii-draft-insert">填入 X</button>
+            <button type="button" class="akiii-draft-copy" aria-label="复制候选 ${index + 1}">复制</button>
+            <button type="button" class="akiii-draft-insert" aria-label="填入 X 候选 ${index + 1}">填入 X</button>
           </div>
         </div>
       `;
@@ -580,6 +601,10 @@
 
       copyBtn.addEventListener('click', async () => {
         await copyTextFallback(textarea.value.trim());
+        copyBtn.textContent = '已复制';
+        setTimeout(() => {
+          if (copyBtn.isConnected) copyBtn.textContent = '复制';
+        }, 1200);
         toast(`候选 ${index + 1} 已复制`, 'ok');
       });
 
@@ -620,8 +645,13 @@
     document.body.appendChild(panel);
     setTimeout(() => {
       const firstTextarea = panel.querySelector('.akiii-draft-text');
-      firstTextarea?.focus();
+      try {
+        firstTextarea?.focus({ preventScroll: true });
+      } catch (_) {
+        firstTextarea?.focus();
+      }
       firstTextarea?.setSelectionRange(firstTextarea.value.length, firstTextarea.value.length);
+      panel.scrollTop = 0;
     }, 60);
   }
 

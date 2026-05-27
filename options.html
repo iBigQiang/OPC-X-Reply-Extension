@@ -16,22 +16,25 @@
       --cyan: #62f3ff;
       --pink: #ff72bd;
       --purple: #9b8cff;
+      --field: rgba(5, 13, 26, .62);
+      --focus: rgba(98, 243, 255, .68);
     }
     * { box-sizing: border-box; }
-    html { background: transparent; }
+    html { background: #07101f; }
     body {
       width: auto;
       min-width: 0;
       min-height: 100vh;
+      min-height: 100dvh;
       margin: 0;
       padding: clamp(18px, 3vw, 32px);
       overflow-x: hidden;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
       color: var(--text);
       background:
-        linear-gradient(180deg, rgba(4, 10, 22, .20), rgba(6, 11, 26, .4)),
-        radial-gradient(circle at 15% 5%, rgba(92, 242, 255, .35), transparent 30%),
-        radial-gradient(circle at 92% 18%, rgba(255, 102, 188, .28), transparent 34%),
+        linear-gradient(180deg, rgba(4, 10, 22, .34), rgba(6, 11, 26, .58)),
+        radial-gradient(circle at 15% 5%, rgba(92, 242, 255, .20), transparent 30%),
+        radial-gradient(circle at 92% 18%, rgba(255, 102, 188, .16), transparent 34%),
         url("img/options_bg.png") center top / cover no-repeat,
         #06101d;
       position: relative;
@@ -63,10 +66,10 @@
     }
     .hero {
       border: 1px solid var(--line);
-      border-radius: 28px;
+      border-radius: 22px;
       padding: 16px;
       margin-bottom: 13px;
-      background: linear-gradient(135deg, rgba(9,24,46,.72), rgba(18,24,51,.56));
+      background: linear-gradient(135deg, rgba(9,24,46,.76), rgba(18,24,51,.62));
       box-shadow:
         0 28px 80px rgba(0,0,0,.34),
         inset 0 1px 0 rgba(255,255,255,.14),
@@ -81,7 +84,7 @@
     .logo {
       width: 58px;
       height: 58px;
-      border-radius: 20px;
+      border-radius: 18px;
       border: 1px solid rgba(98,243,255,.45);
       box-shadow: 0 0 26px rgba(98,243,255,.22), inset 0 1px 0 rgba(255,255,255,.18);
       object-fit: cover;
@@ -123,10 +126,10 @@
     .card {
       position: relative;
       overflow: hidden;
-      border-radius: 24px;
+      border-radius: 20px;
       padding: 15px;
       margin-bottom: 12px;
-      background: linear-gradient(180deg, rgba(8, 20, 38, .72), rgba(8, 18, 34, .58));
+      background: linear-gradient(180deg, rgba(8, 20, 38, .76), rgba(8, 18, 34, .64));
       border: 1px solid rgba(126, 232, 255, .24);
       box-shadow:
         0 18px 46px rgba(0,0,0,.26),
@@ -139,8 +142,8 @@
       inset: 0;
       pointer-events: none;
       background:
-        radial-gradient(circle at 0% 0%, rgba(98,243,255,.13), transparent 32%),
-        radial-gradient(circle at 100% 0%, rgba(255,114,189,.13), transparent 34%);
+        radial-gradient(circle at 0% 0%, rgba(98,243,255,.08), transparent 32%),
+        radial-gradient(circle at 100% 0%, rgba(255,114,189,.07), transparent 34%);
     }
     .card > * { position: relative; z-index: 1; }
     .section-title {
@@ -178,11 +181,11 @@
     input, textarea, select {
       width: 100%;
       border: 1px solid rgba(151, 232, 255, .28);
-      border-radius: 16px;
+      border-radius: 14px;
       padding: 11px 12px;
       font-size: 13px;
       outline: none;
-      background: rgba(3, 10, 21, .54);
+      background: var(--field);
       color: var(--text);
       box-shadow: inset 0 1px 0 rgba(255,255,255,.07);
       transition: border-color .15s ease, box-shadow .15s ease, transform .12s ease, background .15s ease;
@@ -206,6 +209,11 @@
       transform: translateY(-1px);
       background: rgba(4, 13, 27, .72);
     }
+    input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 3px;
+    }
+    [hidden] { display: none !important; }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .hint {
       font-size: 12px;
@@ -248,6 +256,30 @@
       line-height: 1.55;
       font-size: 13px;
     }
+    .endpoint-preview {
+      color: rgba(214,231,242,.58);
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 11.5px;
+      word-break: break-all;
+    }
+    .debug-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 12px;
+      color: rgba(238,251,255,.72);
+      font-weight: 800;
+      cursor: pointer;
+      user-select: none;
+    }
+    .debug-toggle input {
+      width: 18px;
+      height: 18px;
+      padding: 0;
+      accent-color: var(--cyan);
+      transform: none;
+      cursor: pointer;
+    }
     .actions {
       display: flex;
       gap: 10px;
@@ -270,6 +302,9 @@
       transform: translateY(-1px);
       box-shadow: 0 18px 38px rgba(98,243,255,.22), 0 14px 42px rgba(255,114,189,.18);
     }
+    button:active {
+      transform: translateY(0) scale(.99);
+    }
     button.secondary {
       color: rgba(238,251,255,.88);
       background: rgba(255,255,255,.10);
@@ -282,6 +317,8 @@
       font-weight: 900;
       color: #7cffde;
     }
+    .status[data-state="error"] { color: #ff7da6; }
+    .status[data-state="ok"] { color: #7cffde; }
     .footer {
       padding: 8px 2px 0;
       color: rgba(238,251,255,.54);
@@ -349,16 +386,61 @@
     .visibility-toggle .eye-off { display: none; }
     .visibility-toggle[aria-pressed="true"] .eye-open { display: none; }
     .visibility-toggle[aria-pressed="true"] .eye-off  { display: block; }
+
+    @media (max-width: 560px) {
+      body {
+        padding: 12px;
+      }
+      .hero,
+      .card {
+        border-radius: 18px;
+      }
+      .topline {
+        align-items: flex-start;
+      }
+      .logo {
+        width: 50px;
+        height: 50px;
+        border-radius: 16px;
+      }
+      h1 {
+        font-size: 24px;
+        line-height: 1.1;
+      }
+      .author {
+        font-size: 12px;
+        line-height: 1.45;
+      }
+      .tagline {
+        width: 100%;
+        align-items: flex-start;
+        border-radius: 16px;
+        line-height: 1.45;
+      }
+      .row,
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+      .actions {
+        flex-wrap: wrap;
+      }
+      .actions button {
+        flex: 1 1 150px;
+      }
+      .status {
+        flex: 1 1 100%;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="shell">
+  <main class="shell">
     <section class="hero">
       <div class="topline">
         <img class="logo" src="img/Qiangge.png" alt="X 推文互动回复器" />
         <div>
           <h1>X 推文互动回复器</h1>
-          <div class="author">作者：<b><a href="https://x.com/iBigQiang" target="_blank">强子手记</a> @iBigQiang & <a href="https://x.com/Guomin184935" target="_blank">Akiii</a> @Guomin184935</b></div>
+          <div class="author">作者：<b><a href="https://x.com/iBigQiang" target="_blank" rel="noopener noreferrer">强子手记</a> @iBigQiang & <a href="https://x.com/Guomin184935" target="_blank" rel="noopener noreferrer">Akiii</a> @Guomin184935</b></div>
         </div>
       </div>
       <div class="tagline">智能 AI 回复生成助手 · 一次 3 条候选，先编辑草稿，再填入 X</div>
@@ -378,7 +460,7 @@
     <section class="card">
       <div class="section-title"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/></svg></span>API 设置</div>
       <label for="provider">接口类型</label>
-      <select id="provider">
+      <select id="provider" aria-describedby="providerHint">
         <option value="openai_chat">兼容OpenAI-Chat</option>
         <option value="openai_responses">兼容OpenAI-Response</option>
         <option value="gemini">Gemini</option>
@@ -390,7 +472,7 @@
       </select>
       <div class="hint" id="providerHint">切换渠道会自动加载该渠道上次保存的 Key、模型、Base URL。</div>
 
-      <div id="customProtocolRow" style="display:none;">
+      <div id="customProtocolRow" hidden>
         <label for="customProtocol">自定义渠道使用的协议</label>
         <select id="customProtocol">
           <option value="openai_chat">OpenAI-Chat</option>
@@ -402,9 +484,9 @@
       </div>
 
       <label for="apiBase">Base URL</label>
-      <input id="apiBase" type="text" placeholder="https://api.openai.com/v1" />
+      <input id="apiBase" type="text" placeholder="https://api.openai.com/v1" aria-describedby="apiBaseHint apiBasePreview" />
       <div class="hint" id="apiBaseHint">支持填根域名或带 /v1 的 Base URL，扩展会自动补全；末尾加 # 可强制按完整 URL 处理。</div>
-      <div class="hint" id="apiBasePreview" style="color:rgba(214,231,242,.58);font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;font-size:11.5px;word-break:break-all;">完整 API_Base_URL 预览：—</div>
+      <div class="hint endpoint-preview" id="apiBasePreview">完整 API_Base_URL 预览：—</div>
 
       <label for="apiKey">API Key</label>
       <div class="input-with-toggle">
@@ -461,20 +543,20 @@
       <label for="customPrompt">额外提示词，可空</label>
       <textarea id="customPrompt" placeholder="只写风格、人设和边界即可；回复数量和输出格式由插件固定控制为 3 条候选。"></textarea>
 
-      <label style="display:flex;align-items:center;gap:8px;margin-top:12px;color:rgba(238,251,255,.72);font-weight:800;">
-        <input id="debugMode" type="checkbox" style="width:auto;transform:none;" />
+      <label class="debug-toggle">
+        <input id="debugMode" type="checkbox" />
         开启调试日志
       </label>
     </section>
 
     <div class="actions">
-      <button id="save">保存设置</button>
-      <button class="secondary" id="reset">恢复默认</button>
-      <span class="status" id="status"></span>
+      <button type="button" id="save">保存设置</button>
+      <button type="button" class="secondary" id="reset">恢复默认</button>
+      <span class="status" id="status" role="status" aria-live="polite" aria-atomic="true"></span>
     </div>
 
-    <div class="footer">由 <a href="https://x.com/iBigQiang" target="_blank">强子手记</a> & <a href="https://x.com/Guomin184935" target="_blank">Akiii</a> 设计与开发 · 愿 AI 与你同在 ✦</div>
-  </div>
+    <div class="footer">由 <a href="https://x.com/iBigQiang" target="_blank" rel="noopener noreferrer">强子手记</a> & <a href="https://x.com/Guomin184935" target="_blank" rel="noopener noreferrer">Akiii</a> 设计与开发 · 愿 AI 与你同在 ✦</div>
+  </main>
 
   <script src="options.js"></script>
 </body>

@@ -46,3 +46,39 @@ test("options.js 绑定 #apiKeyToggle click：切 password ↔ text + 同步 ari
   assert.match(js, /setAttribute\("aria-pressed"/);
   assert.match(js, /setAttribute\("aria-label"/);
 });
+
+test("设置页提供响应式布局和键盘焦点态", () => {
+  assert.match(html, /@media\s*\(max-width:\s*560px\)/);
+  assert.match(html, /\.row,\s*\n\s*\.feature-grid\s*\{\s*\n\s*grid-template-columns:\s*1fr;/);
+  assert.match(html, /button:focus-visible/);
+  assert.match(html, /a:focus-visible/);
+});
+
+test("状态与 API Base 说明对辅助技术可读", () => {
+  const status = html.match(/<span\s+class="status"[^>]*id="status"[^>]*>/);
+  assert.ok(status, "找不到 #status");
+  assert.match(status[0], /role="status"/);
+  assert.match(status[0], /aria-live="polite"/);
+  assert.match(status[0], /aria-atomic="true"/);
+
+  const apiBase = html.match(/<input\s+id="apiBase"[^>]*>/);
+  assert.ok(apiBase, "找不到 #apiBase");
+  assert.match(apiBase[0], /aria-describedby="apiBaseHint apiBasePreview"/);
+  assert.match(html, /class="hint endpoint-preview"\s+id="apiBasePreview"/);
+});
+
+test("设置页外链使用 noopener noreferrer，且调试开关不再使用内联样式", () => {
+  const blankLinks = [...html.matchAll(/<a\b[^>]*target="_blank"[^>]*>/g)].map((m) => m[0]);
+  assert.ok(blankLinks.length >= 2, "至少应有作者和页脚外链");
+  for (const link of blankLinks) {
+    assert.match(link, /rel="noopener noreferrer"/);
+  }
+  assert.match(html, /<label class="debug-toggle">/);
+  assert.doesNotMatch(html, /style="/);
+});
+
+test("options.js 用 hidden 和状态数据属性管理 UI 状态", () => {
+  assert.match(js, /\$\("customProtocolRow"\)\.hidden\s*=\s*provider !== "custom"/);
+  assert.match(js, /el\.dataset\.state\s*=\s*ok \? "ok" : "error"/);
+  assert.match(js, /错误：\$\{text\}/);
+});

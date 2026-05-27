@@ -93,3 +93,14 @@ test("composer injection keeps rescanning when X reveals the status composer wit
   assert.match(observer, /attributes:\s*true/);
   assert.match(observer, /attributeFilter:\s*\[/);
 });
+
+test("draft panel exposes dialog semantics without changing insert behavior", () => {
+  const block = functionBlock("showDraftPanel");
+
+  assert.match(block, /panel\.setAttribute\('role',\s*'dialog'\)/);
+  assert.match(block, /panel\.setAttribute\('aria-labelledby'/);
+  assert.match(block, /panel\.setAttribute\('aria-describedby'/);
+  assert.match(block, /textarea class="akiii-draft-text" aria-label="候选 \$\{index \+ 1\} 回复内容"/);
+  assert.match(block, /if \(event\.key === 'Escape'\)/);
+  assert.match(block, /const targets = await getInsertTargets\(editor,\s*2500\);/);
+});

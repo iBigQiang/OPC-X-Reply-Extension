@@ -142,10 +142,14 @@ let providerProfiles = emptyProviderProfiles();
 
 function setStatus(text, ok = true) {
   const el = $("status");
-  el.textContent = text;
-  el.style.color = ok ? "#7cffde" : "#ff7da6";
+  const message = ok ? text : `错误：${text}`;
+  el.textContent = message;
+  el.dataset.state = ok ? "ok" : "error";
   setTimeout(() => {
-    if (el.textContent === text) el.textContent = "";
+    if (el.textContent === message) {
+      el.textContent = "";
+      delete el.dataset.state;
+    }
   }, 2600);
 }
 
@@ -201,7 +205,7 @@ function fillProviderFields(provider) {
   $("model").value = profile.model || "";
   $("apiBase").value = profile.apiBase || "";
   $("customProtocol").value = profile.customProtocol || "openai_chat";
-  $("customProtocolRow").style.display = provider === "custom" ? "" : "none";
+  $("customProtocolRow").hidden = provider !== "custom";
   $("apiBaseHint").textContent = PROVIDER_BASE_HINTS[provider] || "";
   updatePreview();
 }
