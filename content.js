@@ -169,6 +169,46 @@
     }
   }
 
+  function getStatusIdFromHref(href) {
+    const match = String(href || '').match(/\/status\/(\d+)/);
+    return match?.[1] || '';
+  }
+
+  function getCurrentStatusId() {
+    return getStatusIdFromHref(location.pathname);
+  }
+
+  function getDetailMainTweetMetaHost(article) {
+    const currentStatusId = getCurrentStatusId();
+    if (!article || !currentStatusId) return null;
+
+    const timeLinks = [...article.querySelectorAll('a[href*="/status/"]')]
+      .filter((link) => closestArticle(link) === article)
+      .filter((link) => getStatusIdFromHref(link.getAttribute('href')) === currentStatusId)
+      .filter((link) => link.querySelector('time[datetime]'))
+      .filter((link) => !link.closest('[data-testid="User-Name"]'));
+    const timeLink = timeLinks[0];
+    if (!timeLink) return null;
+
+    let fallback = timeLink.parentElement?.parentElement || timeLink.parentElement;
+    let node = timeLink.parentElement;
+    let depth = 0;
+    while (node && node !== article && depth < 6) {
+      if (closestArticle(node) !== article) return null;
+      const text = normalizeText(node.innerText || node.textContent || '');
+      if (text.length <= 180 && node.contains(timeLink)) {
+        fallback = node;
+        const hasAnalyticsLink = [...node.querySelectorAll('a[href*="/analytics"]')]
+          .some((link) => closestArticle(link) === article);
+        if (hasAnalyticsLink || /(?:查看|views?)/i.test(text)) return node;
+      }
+      node = node.parentElement;
+      depth += 1;
+    }
+
+    return fallback && closestArticle(fallback) === article ? fallback : null;
+  }
+
   function extractAuthor(article) {
     const nameBlock = article?.querySelector?.('div[data-testid="User-Name"]');
     const text = nameBlock?.innerText || '';
@@ -788,21 +828,31 @@
 
   function injectArticleButton(article) {
     if (!article || !isVisible(article)) return;
-    if (article.querySelector(':scope .akiii-ai-button.akiii-article')) return;
 
     const replyButton = article.querySelector(REPLY_BUTTON_SELECTOR);
     if (!replyButton || !isVisible(replyButton)) return;
 
+    const detailMetaHost = getDetailMainTweetMetaHost(article);
     const actionHost = replyButton.closest('[role="group"]') || replyButton.parentElement?.parentElement || replyButton.parentElement;
-    if (!actionHost || actionHost.querySelector('.akiii-ai-button.akiii-article')) return;
+    const targetHost = detailMetaHost || actionHost;
+    if (!targetHost) return;
+
+    const existing = article.querySelector(':scope .akiii-ai-button.akiii-article')
+      || [...targetHost.children].find((child) => child.matches?.('.akiii-ai-button.akiii-article'));
+    if (existing) {
+      existing.classList.toggle('akiii-detail-meta', !!detailMetaHost);
+      if (existing.parentElement !== targetHost) targetHost.insertBefore(existing, null);
+      return;
+    }
 
     const btn = createButton('AI回', 'akiii-article');
+    btn.classList.toggle('akiii-detail-meta', !!detailMetaHost);
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
       runForArticle(article, btn);
     }, true);
-    actionHost.appendChild(btn);
+    targetHost.insertBefore(btn, null);
   }
 
   function injectComposerButton(anchor) {

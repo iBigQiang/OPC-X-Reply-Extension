@@ -94,6 +94,35 @@ test("composer injection keeps rescanning when X reveals the status composer wit
   assert.match(observer, /attributeFilter:\s*\[/);
 });
 
+test("article injection moves the status detail main tweet button to metadata row", () => {
+  const detail = functionBlock("getDetailMainTweetMetaHost");
+  const inject = functionBlock("injectArticleButton");
+
+  assert.match(source, /function getCurrentStatusId\(\)/);
+  assert.match(detail, /time\[datetime\]/);
+  assert.match(detail, /a\[href\*="\/status\/"\]/);
+  assert.match(detail, /data-testid="User-Name"/);
+  assert.match(detail, /closestArticle\(link\) === article/);
+  assert.match(inject, /const detailMetaHost = getDetailMainTweetMetaHost\(article\);/);
+  assert.ok(
+    inject.indexOf("const detailMetaHost = getDetailMainTweetMetaHost(article);") <
+      inject.indexOf("replyButton.closest('[role=\"group\"]')"),
+    "detail metadata row should be chosen before the action-group fallback"
+  );
+  assert.match(inject, /btn\.classList\.toggle\('akiii-detail-meta',\s*!!detailMetaHost\)/);
+});
+
+test("article injection keeps the timeline button in the native action group fallback", () => {
+  const inject = functionBlock("injectArticleButton");
+  const scan = functionBlock("scan");
+
+  assert.match(inject, /replyButton\.closest\('\[role="group"\]'\)/);
+  assert.match(inject, /createButton\('AI回',\s*'akiii-article'\)/);
+  assert.match(inject, /\.\.\.targetHost\.children/);
+  assert.match(inject, /targetHost\.insertBefore\(btn,\s*null\)/);
+  assert.match(scan, /querySelectorAll\(ARTICLE_SELECTOR\)\]\.forEach\(injectArticleButton\)/);
+});
+
 test("draft panel exposes dialog semantics without changing insert behavior", () => {
   const block = functionBlock("showDraftPanel");
 

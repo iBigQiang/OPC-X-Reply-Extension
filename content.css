@@ -35,7 +35,33 @@
 
 .akiii-ai-button:active { transform: translateY(0) scale(.99); }
 .akiii-ai-button:disabled { opacity: .68; cursor: wait; }
+.akiii-article {
+  align-self: center;
+  flex: 0 0 auto;
+  height: 30px;
+  min-width: 54px;
+  margin: 0 0 0 8px;
+  padding: 0 12px;
+}
 .akiii-composer { margin-right: 8px; margin-left: 0; height: 32px; min-width: 66px; }
+
+[role="group"] > .akiii-ai-button.akiii-article {
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.akiii-ai-button.akiii-detail-meta {
+  height: 24px;
+  min-width: 50px;
+  padding: 0 11px;
+  margin-left: 10px;
+  font-size: 12px;
+  vertical-align: middle;
+  box-shadow:
+    0 8px 20px rgba(98, 243, 255, .22),
+    0 8px 22px rgba(255, 114, 189, .16),
+    inset 0 1px 0 rgba(255,255,255,.64);
+}
 
 .akiii-toast {
   position: fixed;
@@ -62,20 +88,20 @@
 }
 
 .akiii-draft-panel {
-  --akiii-action-button-width: 116px;
+  --akiii-action-button-width: 84px;
   box-sizing: border-box;
   position: fixed;
   right: max(12px, env(safe-area-inset-right));
   bottom: max(12px, env(safe-area-inset-bottom));
   z-index: 2147483646;
   isolation: isolate;
-  width: min(860px, calc(100vw - 24px));
-  max-height: calc(100vh - 24px);
-  max-height: calc(100dvh - 24px);
-  padding: clamp(18px, 2.2vw, 30px);
-  border-radius: 32px;
+  width: min(800px, calc(100vw - 24px));
+  max-height: 640px;
+  max-height: min(640px, 60dvh);
+  padding: clamp(12px, 1vw, 14px);
+  border-radius: 22px;
   color: rgba(238, 251, 255, .96);
-  overflow: auto;
+  overflow: hidden;
   background:
     linear-gradient(135deg, rgba(118, 153, 160, .70), rgba(78, 81, 98, .66) 46%, rgba(121, 83, 110, .62)),
     radial-gradient(circle at 9% 8%, rgba(98, 243, 255, .26), transparent 27%),
@@ -124,16 +150,16 @@
   position: relative;
   z-index: 1;
   display: flex;
-  gap: 18px;
+  gap: 10px;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 8px;
 }
 
 .akiii-draft-logo {
   flex-shrink: 0;
-  width: 72px;
-  height: 72px;
-  border-radius: 20px;
+  width: 54px;
+  height: 54px;
+  border-radius: 15px;
   object-fit: cover;
   user-select: none;
   -webkit-user-drag: none;
@@ -151,7 +177,7 @@
 
 .akiii-draft-title {
   margin-top: 0;
-  font-size: clamp(22px, 2.2vw, 28px);
+  font-size: clamp(18px, 1.6vw, 22px);
   font-weight: 950;
   letter-spacing: 0;
   line-height: 1.05;
@@ -160,31 +186,56 @@
 }
 
 .akiii-draft-sub {
-  margin-top: 8px;
+  margin-top: 4px;
   color: rgba(226, 241, 249, .74);
-  font-size: clamp(14px, 1.35vw, 17px);
+  font-size: clamp(12px, .95vw, 13px);
   font-weight: 760;
-  line-height: 1.32;
+  line-height: 1.25;
   overflow-wrap: anywhere;
 }
 
 .akiii-draft-close {
+  position: relative;
   display: inline-grid;
   place-items: center;
   flex: 0 0 auto;
-  width: 46px;
-  height: 46px;
+  width: 38px;
+  height: 38px;
   padding: 0;
   border: 1px solid rgba(255,255,255,.18);
   border-radius: 999px;
   background: rgba(255,255,255,.14);
   color: rgba(238, 251, 255, .94);
-  font-size: 30px;
+  font-size: 0;
   font-weight: 850;
   line-height: 1;
   cursor: pointer;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 10px 24px rgba(0, 0, 0, .14);
   transition: transform .14s ease, background .14s ease, border-color .14s ease;
+}
+.akiii-draft-close::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 16px;
+  height: 3px;
+  border-radius: 999px;
+  background: currentColor;
+  transform-origin: center;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+.akiii-draft-close::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 16px;
+  height: 3px;
+  border-radius: 999px;
+  background: currentColor;
+  transform-origin: center;
+  transform: translate(-50%, -50%) rotate(-45deg);
 }
 .akiii-draft-close:hover {
   background: rgba(255,255,255,.22);
@@ -201,14 +252,14 @@
   position: relative;
   z-index: 1;
   display: grid;
-  gap: 22px;
+  gap: 7px;
 }
 
 .akiii-draft-candidate {
   position: relative;
-  padding: 22px;
+  padding: 9px;
   border: 1px solid rgba(139, 247, 255, .28);
-  border-radius: 28px;
+  border-radius: 18px;
   background: rgba(19, 27, 40, .56);
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.12),
@@ -223,16 +274,16 @@
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 5px;
   color: rgba(214, 231, 242, .76);
-  font: 920 15px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font: 920 12px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 
 .akiii-draft-candidate-head span {
   display: inline-flex;
   align-items: center;
-  min-height: 32px;
-  padding: 0 16px;
+  min-height: 22px;
+  padding: 0 9px;
   border-radius: 999px;
   background: rgba(98, 243, 255, .13);
   border: 1px solid rgba(139, 247, 255, .34);
@@ -243,7 +294,7 @@
 .akiii-draft-candidate-body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) max-content;
-  gap: 28px;
+  gap: 12px;
   align-items: stretch;
 }
 
@@ -253,19 +304,21 @@
   min-width: 0;
   max-width: none;
   justify-self: stretch;
-  min-height: 118px;
-  max-height: 220px;
-  resize: vertical;
-  padding: 22px 24px;
+  height: 64px;
+  min-height: 58px;
+  max-height: 72px;
+  resize: none;
+  padding: 10px 12px;
   border: 1px solid rgba(139, 247, 255, .42);
-  border-radius: 24px;
+  border-radius: 14px;
   outline: none;
   color: rgba(244, 252, 255, .98);
   background: rgba(4, 12, 23, .72);
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.08),
     inset 0 -1px 0 rgba(0, 0, 0, .20);
-  font: 820 clamp(16px, 1.8vw, 21px)/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font: 760 clamp(15px, 1vw, 16px)/1.38 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  overflow: auto;
   overflow-wrap: anywhere;
   scrollbar-color: rgba(188, 216, 226, .72) rgba(255,255,255,.08);
 }
@@ -281,7 +334,7 @@
 .akiii-draft-candidate-actions {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 6px;
   justify-content: center;
   align-items: flex-end;
   justify-self: end;
@@ -294,9 +347,9 @@
   width: var(--akiii-action-button-width);
   border: none;
   border-radius: 999px;
-  min-height: 52px;
-  padding: 10px 0;
-  font: 950 17px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  min-height: 32px;
+  padding: 6px 0;
+  font: 950 13px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
   cursor: pointer;
   transition: transform .12s ease, filter .12s ease, border-color .12s ease, box-shadow .12s ease;
   white-space: nowrap;
@@ -329,36 +382,35 @@
     right: max(8px, env(safe-area-inset-right));
     bottom: max(8px, env(safe-area-inset-bottom));
     width: calc(100vw - 16px);
-    max-height: calc(100vh - 16px);
-    max-height: calc(100dvh - 16px);
-    padding: 16px;
-    border-radius: 24px;
+    max-height: 640px;
+    max-height: min(640px, 60dvh);
+    padding: 12px;
+    border-radius: 22px;
   }
 
   .akiii-draft-head {
-    gap: 12px;
-    margin-bottom: 16px;
+    gap: 10px;
+    margin-bottom: 8px;
   }
 
   .akiii-draft-logo {
-    width: 64px;
-    height: 64px;
+    width: 54px;
+    height: 54px;
     border-radius: 16px;
   }
 
   .akiii-draft-close {
     width: 42px;
     height: 42px;
-    font-size: 27px;
   }
 
   .akiii-draft-list {
-    gap: 14px;
+    gap: 7px;
   }
 
   .akiii-draft-candidate {
-    padding: 14px;
-    border-radius: 20px;
+    padding: 9px;
+    border-radius: 18px;
   }
 
   .akiii-draft-candidate-body {
@@ -367,10 +419,12 @@
   }
 
   .akiii-draft-text {
-    min-height: 112px;
-    padding: 16px;
-    border-radius: 18px;
-    font-size: 16px;
+    height: 64px;
+    min-height: 58px;
+    max-height: 72px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    font-size: 15px;
   }
 
   .akiii-draft-candidate-actions {
