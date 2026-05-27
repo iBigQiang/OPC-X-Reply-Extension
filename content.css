@@ -253,43 +253,18 @@
   position: relative;
   z-index: 1;
   display: grid;
-  gap: 7px;
+  gap: 9px;
 }
 
 .akiii-draft-candidate {
   position: relative;
-  padding: 9px;
-  border: 1px solid rgba(139, 247, 255, .28);
-  border-radius: 18px;
-  background: rgba(19, 27, 40, .56);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.12),
-    inset 0 0 0 1px rgba(255,255,255,.03),
-    0 16px 42px rgba(0, 0, 0, .18);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.akiii-draft-candidate-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 5px;
-  color: rgba(214, 231, 242, .76);
-  font: 920 12px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-}
-
-.akiii-draft-candidate-head span {
-  display: inline-flex;
-  align-items: center;
-  min-height: 22px;
-  padding: 0 9px;
-  border-radius: 999px;
-  background: rgba(98, 243, 255, .13);
-  border: 1px solid rgba(139, 247, 255, .34);
-  color: rgba(238, 251, 255, .84);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .akiii-draft-candidate-body {
@@ -297,6 +272,37 @@
   grid-template-columns: minmax(0, 1fr) max-content;
   gap: 12px;
   align-items: stretch;
+}
+
+.akiii-draft-text-shell {
+  position: relative;
+  min-width: 0;
+  width: 100%;
+  justify-self: stretch;
+}
+
+.akiii-draft-floating-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: 0 0 14px 0;
+  color: #06101d;
+  background: linear-gradient(100deg, #51efff 0%, #7b8cff 52%, #ff72bd 100%);
+  border: 1px solid rgba(139, 247, 255, .55);
+  border-top-color: rgba(255, 255, 255, .36);
+  border-left-color: rgba(255, 255, 255, .26);
+  box-shadow:
+    0 10px 24px rgba(98, 243, 255, .16),
+    0 8px 24px rgba(255, 114, 189, .12),
+    inset 0 1px 0 rgba(255,255,255,.44);
+  font: 880 12.5px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  pointer-events: none;
+  user-select: none;
 }
 
 .akiii-draft-text {
@@ -309,7 +315,7 @@
   min-height: 58px;
   max-height: 104px;
   resize: none;
-  padding: 10px 12px;
+  padding: 31px 12px 10px;
   border: 1px solid rgba(139, 247, 255, .42);
   border-radius: 14px;
   outline: none;
@@ -411,20 +417,20 @@
   }
 
   .akiii-draft-candidate {
-    padding: 9px;
-    border-radius: 18px;
+    padding: 0;
+    border-radius: 0;
   }
 
   .akiii-draft-candidate-body {
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 9px;
   }
 
   .akiii-draft-text {
     height: clamp(84px, 10dvh, 96px);
     min-height: 58px;
     max-height: 104px;
-    padding: 10px 12px;
+    padding: 31px 12px 10px;
     border-radius: 14px;
     font-size: 14px;
   }

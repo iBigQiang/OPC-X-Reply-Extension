@@ -19,8 +19,21 @@ test("candidate action buttons use one compact shared width", () => {
   assert.match(rule(".akiii-draft-panel"), /height:\s*min\(600px,\s*60dvh\);/);
   assert.match(rule(".akiii-draft-panel"), /max-height:\s*min\(600px,\s*60dvh\);/);
   assert.match(rule(".akiii-draft-panel"), /overflow:\s*hidden;/);
+  const candidate = rule(".akiii-draft-candidate");
+  assert.match(candidate, /background:\s*transparent;/);
+  assert.match(candidate, /border:\s*0;/);
+  assert.match(candidate, /box-shadow:\s*none;/);
   assert.match(rule(".akiii-draft-candidate-body"), /grid-template-columns:\s*minmax\(0,\s*1fr\)\s+max-content;/);
   assert.match(rule(".akiii-draft-candidate-body"), /gap:\s*12px;/);
+  assert.match(rule(".akiii-draft-text-shell"), /position:\s*relative;/);
+  assert.match(rule(".akiii-draft-text-shell"), /justify-self:\s*stretch;/);
+  const floatingLabel = rule(".akiii-draft-floating-label");
+  assert.match(floatingLabel, /position:\s*absolute;/);
+  assert.match(floatingLabel, /top:\s*0;/);
+  assert.match(floatingLabel, /left:\s*0;/);
+  assert.match(floatingLabel, /border-radius:\s*0\s+0\s+14px\s+0;/);
+  assert.match(floatingLabel, /background:\s*linear-gradient\(100deg,\s*#51efff/);
+  assert.match(floatingLabel, /pointer-events:\s*none;/);
 
   const text = rule(".akiii-draft-text");
   assert.match(text, /box-sizing:\s*border-box;/);
@@ -29,6 +42,7 @@ test("candidate action buttons use one compact shared width", () => {
   assert.match(text, /justify-self:\s*stretch;/);
   assert.match(text, /height:\s*clamp\(84px,\s*10dvh,\s*96px\);/);
   assert.match(text, /max-height:\s*104px;/);
+  assert.match(text, /padding:\s*31px\s+12px\s+10px;/);
   assert.match(text, /resize:\s*none;/);
   assert.match(text, /overflow:\s*auto;/);
   assert.match(text, /overflow-wrap:\s*anywhere;/);

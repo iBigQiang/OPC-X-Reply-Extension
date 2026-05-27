@@ -622,11 +622,11 @@
       item.setAttribute('role', 'group');
       item.setAttribute('aria-labelledby', `${panelId}-candidate-${index + 1}`);
       item.innerHTML = `
-        <div class="akiii-draft-candidate-head">
-          <span id="${panelId}-candidate-${index + 1}">候选 ${index + 1}</span>
-        </div>
         <div class="akiii-draft-candidate-body">
-          <textarea class="akiii-draft-text" aria-label="候选 ${index + 1} 回复内容" spellcheck="false" placeholder="生成内容会显示在这里，可以先手动修改"></textarea>
+          <div class="akiii-draft-text-shell">
+            <span class="akiii-draft-floating-label" id="${panelId}-candidate-${index + 1}">候选 ${index + 1}</span>
+            <textarea class="akiii-draft-text" aria-label="候选 ${index + 1} 回复内容" spellcheck="false" placeholder="生成内容会显示在这里，可以先手动修改"></textarea>
+          </div>
           <div class="akiii-draft-candidate-actions">
             <button type="button" class="akiii-draft-copy" aria-label="复制候选 ${index + 1}">复制</button>
             <button type="button" class="akiii-draft-insert" aria-label="填入 X 候选 ${index + 1}">填入 X</button>

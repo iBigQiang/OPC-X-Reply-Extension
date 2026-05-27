@@ -129,6 +129,9 @@ test("draft panel exposes dialog semantics without changing insert behavior", ()
   assert.match(block, /panel\.setAttribute\('role',\s*'dialog'\)/);
   assert.match(block, /panel\.setAttribute\('aria-labelledby'/);
   assert.match(block, /panel\.setAttribute\('aria-describedby'/);
+  assert.match(block, /item\.setAttribute\('aria-labelledby',\s*`\$\{panelId\}-candidate-\$\{index \+ 1\}`\)/);
+  assert.match(block, /<div class="akiii-draft-text-shell">/);
+  assert.match(block, /<span class="akiii-draft-floating-label" id="\$\{panelId\}-candidate-\$\{index \+ 1\}">候选 \$\{index \+ 1\}<\/span>/);
   assert.match(block, /textarea class="akiii-draft-text" aria-label="候选 \$\{index \+ 1\} 回复内容"/);
   assert.match(block, /if \(event\.key === 'Escape'\)/);
   assert.match(block, /const targets = await getInsertTargets\(editor,\s*2500\);/);
