@@ -95,11 +95,10 @@
   bottom: max(12px, env(safe-area-inset-bottom));
   z-index: 2147483646;
   isolation: isolate;
-  width: min(600px, calc(100vw - 24px));
-  height: min(600px, 60dvh);
-  max-height: 600px;
-  max-height: min(600px, 60dvh);
-  padding: clamp(12px, 1vw, 14px);
+  width: min(490px, calc(100vw - 24px));
+  height: min(490px, 60dvh);
+  max-height: min(490px, 60dvh);
+  padding: 16px;
   border-radius: 22px;
   color: rgba(238, 251, 255, .96);
   overflow: hidden;
@@ -153,7 +152,7 @@
   display: flex;
   gap: 10px;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 16px;
 }
 
 .akiii-draft-logo {
@@ -253,7 +252,7 @@
   position: relative;
   z-index: 1;
   display: grid;
-  gap: 9px;
+  gap: 16px;
 }
 
 .akiii-draft-candidate {
@@ -290,7 +289,7 @@
   align-items: center;
   min-height: 28px;
   padding: 0 12px;
-  border-radius: 0 0 14px 0;
+  border-radius: 14px 0 14px 0;
   color: #06101d;
   background: linear-gradient(100deg, #51efff 0%, #7b8cff 52%, #ff72bd 100%);
   border: 1px solid rgba(139, 247, 255, .55);
@@ -311,11 +310,12 @@
   min-width: 0;
   max-width: none;
   justify-self: stretch;
-  height: clamp(84px, 10dvh, 96px);
-  min-height: 58px;
-  max-height: 104px;
+  height: clamp(108px, 13dvh, 112px);
+  min-height: 82px;
+  max-height: 124px;
   resize: none;
-  padding: 31px 12px 10px;
+  padding: 10px 12px;
+  text-indent: 70px;
   border: 1px solid rgba(139, 247, 255, .42);
   border-radius: 14px;
   outline: none;
@@ -389,9 +389,8 @@
     right: max(8px, env(safe-area-inset-right));
     bottom: max(8px, env(safe-area-inset-bottom));
     width: calc(100vw - 16px);
-    height: min(600px, 60dvh);
-    max-height: 600px;
-    max-height: min(600px, 60dvh);
+    height: min(490px, 60dvh);
+    max-height: min(490px, 60dvh);
     padding: 12px;
     border-radius: 22px;
   }
@@ -413,7 +412,9 @@
   }
 
   .akiii-draft-list {
-    gap: 7px;
+    gap: 14px;
+    overflow-y: auto;
+    padding-right: 2px;
   }
 
   .akiii-draft-candidate {
@@ -423,14 +424,15 @@
 
   .akiii-draft-candidate-body {
     grid-template-columns: 1fr;
-    gap: 9px;
+    gap: 10px;
   }
 
   .akiii-draft-text {
-    height: clamp(84px, 10dvh, 96px);
-    min-height: 58px;
-    max-height: 104px;
-    padding: 31px 12px 10px;
+    height: clamp(92px, 16dvh, 108px);
+    min-height: 76px;
+    max-height: 116px;
+    padding: 10px 12px;
+    text-indent: 70px;
     border-radius: 14px;
     font-size: 14px;
   }

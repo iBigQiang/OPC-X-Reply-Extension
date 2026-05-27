@@ -584,7 +584,7 @@
     panel.setAttribute('aria-modal', 'false');
     panel.tabIndex = -1;
     const panelId = `akiii-draft-${Date.now()}`;
-    const manifestVersion = chrome.runtime.getManifest?.().version || '2.1.4';
+    const manifestVersion = chrome.runtime.getManifest?.().version || '2.2';
     const logoUrl = chrome.runtime.getURL('img/Qiangge.png');
     panel.innerHTML = `
       <div class="akiii-draft-head">

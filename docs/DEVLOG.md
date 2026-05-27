@@ -5,6 +5,38 @@
 
 ---
 
+## v2.2 — 2026-05-27 — 草稿窗方形化 + 行内候选标签 + README 配图更新
+
+**确定方案**
+
+连续几轮实测后，草稿窗从偏宽的 600px 面板收敛为更紧凑的方形面板：桌面端以 490px 正方形为目标，小屏仍受 60dvh 限高约束。3 条候选保持全部可见，候选外层卡片底色去掉，只保留文本框本体、右侧复制 / 填入按钮和背景层次。
+
+候选编号不再单独占一行，而是作为首行左侧的行内标签：标签贴在 textarea 左上角，左上与右下两个对角圆角和文本框一致；正文首行通过 `text-indent` 从标签右侧开始，后续换行回到正常左边界。
+
+**实施细节**
+
+- `content.css`
+  - `.akiii-draft-panel` 改为 `490px` 方形上限，内边距统一为 `16px`
+  - `.akiii-draft-head` 到第一条候选、候选之间、最后一条到底部的视觉留白统一为约 `16px`
+  - `.akiii-draft-floating-label` 改为 `14px 0 14px 0` 圆角，匹配文本框圆角
+  - `.akiii-draft-text` 改为 `height: clamp(108px, 13dvh, 112px)`，`padding: 10px 12px`，`text-indent: 70px`
+  - 移动端保持 60dvh 限高，候选列表允许内部滚动，避免小屏溢出
+- `manifest.json` / `content.js`
+  - 版本号从 `2.1.4` 升到 `2.2`
+  - 草稿窗标题继续读取 `chrome.runtime.getManifest().version`，fallback 更新为 `2.2`
+- `README.md`
+  - 当前版本与标题更新到 v2.2
+  - 草稿窗截图替换为 `docs/readme_img/OPC-X-Reply-Extension_490.png`
+  - 版本节点新增 v2.2 说明
+- `docs/readme_img/OPC-X-Reply-Extension_490.png`
+  - 使用本次 490px 方形草稿窗预览图，来源为 `C:\tmp\akiii-draft-490-balanced-preview.png`
+
+**状态**
+
+已交付。`node --test tests/*.test.mjs` 55/55 全绿；`OPC-X-Reply-Extension.zip` 在 push 前已由 `bash pack.sh` 重打。
+
+---
+
 ## v2.1.4 — 2026-05-19 — hero 区作者超链接去样式 + 背景图替换收尾 + section-title 图标 lucide 化 + 修复 API Key 泄露事故
 
 **确定方案**

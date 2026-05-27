@@ -15,10 +15,13 @@ test("candidate action buttons use one compact shared width", () => {
   assert.match(rule(".akiii-draft-panel"), /--akiii-action-button-width:\s*84px;/);
   assert.match(rule(".akiii-draft-panel"), /box-sizing:\s*border-box;/);
   assert.match(rule(".akiii-draft-panel"), /isolation:\s*isolate;/);
-  assert.match(rule(".akiii-draft-panel"), /width:\s*min\(600px,\s*calc\(100vw - 24px\)\);/);
-  assert.match(rule(".akiii-draft-panel"), /height:\s*min\(600px,\s*60dvh\);/);
-  assert.match(rule(".akiii-draft-panel"), /max-height:\s*min\(600px,\s*60dvh\);/);
+  assert.match(rule(".akiii-draft-panel"), /width:\s*min\(490px,\s*calc\(100vw - 24px\)\);/);
+  assert.match(rule(".akiii-draft-panel"), /height:\s*min\(490px,\s*60dvh\);/);
+  assert.match(rule(".akiii-draft-panel"), /max-height:\s*min\(490px,\s*60dvh\);/);
+  assert.match(rule(".akiii-draft-panel"), /padding:\s*16px;/);
   assert.match(rule(".akiii-draft-panel"), /overflow:\s*hidden;/);
+  assert.match(rule(".akiii-draft-head"), /margin-bottom:\s*16px;/);
+  assert.match(rule(".akiii-draft-list"), /gap:\s*16px;/);
   const candidate = rule(".akiii-draft-candidate");
   assert.match(candidate, /background:\s*transparent;/);
   assert.match(candidate, /border:\s*0;/);
@@ -31,7 +34,7 @@ test("candidate action buttons use one compact shared width", () => {
   assert.match(floatingLabel, /position:\s*absolute;/);
   assert.match(floatingLabel, /top:\s*0;/);
   assert.match(floatingLabel, /left:\s*0;/);
-  assert.match(floatingLabel, /border-radius:\s*0\s+0\s+14px\s+0;/);
+  assert.match(floatingLabel, /border-radius:\s*14px\s+0\s+14px\s+0;/);
   assert.match(floatingLabel, /background:\s*linear-gradient\(100deg,\s*#51efff/);
   assert.match(floatingLabel, /pointer-events:\s*none;/);
 
@@ -40,9 +43,10 @@ test("candidate action buttons use one compact shared width", () => {
   assert.match(text, /min-width:\s*0;/);
   assert.match(text, /max-width:\s*none;/);
   assert.match(text, /justify-self:\s*stretch;/);
-  assert.match(text, /height:\s*clamp\(84px,\s*10dvh,\s*96px\);/);
-  assert.match(text, /max-height:\s*104px;/);
-  assert.match(text, /padding:\s*31px\s+12px\s+10px;/);
+  assert.match(text, /height:\s*clamp\(108px,\s*13dvh,\s*112px\);/);
+  assert.match(text, /max-height:\s*124px;/);
+  assert.match(text, /padding:\s*10px\s+12px;/);
+  assert.match(text, /text-indent:\s*70px;/);
   assert.match(text, /resize:\s*none;/);
   assert.match(text, /overflow:\s*auto;/);
   assert.match(text, /overflow-wrap:\s*anywhere;/);

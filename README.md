@@ -1,10 +1,10 @@
-# X 推文互动回复器 v2.1
+# X 推文互动回复器 v2.2
 
 X 推文互动回复器（OPC-X-Reply-Extension）是一款面向 X / Twitter KOL 的 AI 回复辅助 Chrome 扩展，可在推文旁一键生成中英文评论候选，先编辑草稿后再填入回复框。
 
 本仓库基于上游 [Akiii-v-1.9](https://github.com/futakocui008/Akiii-v-1.9) 演进，在 v2.x 系列里做了多渠道接口、3 条候选草稿窗、Base URL 智能补全、API Key 可见性切换等实用层面的深度优化。
 
-> 当前版本：**v2.1.4**
+> 当前版本：**v2.2**
 
 ---
 
@@ -22,7 +22,7 @@ X 推文互动回复器（OPC-X-Reply-Extension）是一款面向 X / Twitter KO
 
 1. **推文旁一键生成回复**：时间线 / 推文详情页操作区自动注入 `AI回` 按钮，点击后读取推文内容并生成评论。
 2. **回复框内一键生成**：打开 X 回复弹窗时显示 `AI填入` 按钮。
-3. **一次 3 条候选 + 可编辑草稿窗**：每条候选独立文本框，支持单独编辑、单独复制、单独填入 X。
+3. **一次 3 条候选 + 可编辑草稿窗**：v2.2 起改为 490px 方形草稿窗，候选标签内嵌到文本框首行，支持单独编辑、单独复制、单独填入 X。
 4. **中英文自动识别**：基于 CJK / 拉丁字符密度自动判断主语言，中文推文生成中文短评，英文推文生成自然英文回复，混合则按主语言判断。
 5. **去 AI 味提示词**：要求自然、有灵魂、有观点，不写空话套话、不滥用 emoji、不输出解释、不带"回复："等前缀。
 6. **禁用词过滤**：用户可自定义禁用词，命中即丢弃整条候选并重试。
@@ -36,7 +36,7 @@ X 推文互动回复器（OPC-X-Reply-Extension）是一款面向 X / Twitter KO
 14. **本地保存配置**：所有配置（包括 API Key）仅存在 `chrome.storage.local`，不上传任何远端。
 15. **二次元玻璃拟态 UI**：v2.1.4 起采用强哥拍的新底图 `options_bg.png`，section-title 用 lucide 风格 inline SVG 图标。
 16. **独立设置页**：点击浏览器图标直接打开 options.html，不再用容易自动关闭的 popup。
-17. **自动化测试基线**：`tests/*.test.mjs` 共 41 条用例，覆盖 background 生成路径、content 注入逻辑、CSS 约束、manifest 行为、endpoint-preview。
+17. **自动化测试基线**：`tests/*.test.mjs` 共 55 条用例，覆盖 background 生成路径、content 注入逻辑、CSS 约束、manifest 行为、endpoint-preview。
 
 ---
 
@@ -50,9 +50,9 @@ X 推文互动回复器（OPC-X-Reply-Extension）是一款面向 X / Twitter KO
 
 ![API 设置 8 个渠道](docs/readme_img/OPC-X-Reply-Extension_options-apisz.png)
 
-**3 条候选可编辑草稿窗：**
+**v2.2 方形草稿窗（行内候选标签 + 等距留白）：**
 
-![3 条候选草稿窗](docs/readme_img/OPC-X-Reply-Extension_tc.png)
+![v2.2 方形草稿窗](docs/readme_img/OPC-X-Reply-Extension_490.png)
 
 **推文操作区按钮（AI回 / AI填入）：**
 
@@ -209,11 +209,12 @@ OPC-X-Reply-Extension/
 当前版本：
 
 ```text
-v2.1.4
+v2.2
 ```
 
 主要版本节点：
 
+- **v2.2** — 草稿窗视觉重构：490px 方形面板、行内候选标签、等距留白、候选外层底色移除，并同步更新 README 配图
 - **v2.1.4** — hero 区作者超链接去样式 + 背景图替换收尾 + section-title 图标 lucide 化 + 修复 API Key 泄露事故
 - **v2.1.3** — Base URL 智能自动补全归一化（学习 Cherry Studio）
 - **v2.1.2** — API Key 输入框小眼睛可见性切换
