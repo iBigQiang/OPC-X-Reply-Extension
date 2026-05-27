@@ -51,16 +51,16 @@
 }
 
 .akiii-ai-button.akiii-detail-meta {
-  height: 24px;
-  min-width: 50px;
-  padding: 0 11px;
-  margin-left: 10px;
-  font-size: 12px;
+  height: 21px;
+  min-width: 44px;
+  padding: 0 9px;
+  margin-left: 8px;
+  font: 650 11.5px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
   vertical-align: middle;
   box-shadow:
-    0 8px 20px rgba(98, 243, 255, .22),
-    0 8px 22px rgba(255, 114, 189, .16),
-    inset 0 1px 0 rgba(255,255,255,.64);
+    0 6px 14px rgba(98, 243, 255, .18),
+    0 6px 16px rgba(255, 114, 189, .12),
+    inset 0 1px 0 rgba(255,255,255,.58);
 }
 
 .akiii-toast {
@@ -95,9 +95,10 @@
   bottom: max(12px, env(safe-area-inset-bottom));
   z-index: 2147483646;
   isolation: isolate;
-  width: min(800px, calc(100vw - 24px));
-  max-height: 640px;
-  max-height: min(640px, 60dvh);
+  width: min(600px, calc(100vw - 24px));
+  height: min(600px, 60dvh);
+  max-height: 600px;
+  max-height: min(600px, 60dvh);
   padding: clamp(12px, 1vw, 14px);
   border-radius: 22px;
   color: rgba(238, 251, 255, .96);
@@ -304,9 +305,9 @@
   min-width: 0;
   max-width: none;
   justify-self: stretch;
-  height: 64px;
+  height: clamp(84px, 10dvh, 96px);
   min-height: 58px;
-  max-height: 72px;
+  max-height: 104px;
   resize: none;
   padding: 10px 12px;
   border: 1px solid rgba(139, 247, 255, .42);
@@ -317,7 +318,7 @@
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.08),
     inset 0 -1px 0 rgba(0, 0, 0, .20);
-  font: 760 clamp(15px, 1vw, 16px)/1.38 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font: 500 clamp(14px, .9vw, 15px)/1.38 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
   overflow: auto;
   overflow-wrap: anywhere;
   scrollbar-color: rgba(188, 216, 226, .72) rgba(255,255,255,.08);
@@ -382,8 +383,9 @@
     right: max(8px, env(safe-area-inset-right));
     bottom: max(8px, env(safe-area-inset-bottom));
     width: calc(100vw - 16px);
-    max-height: 640px;
-    max-height: min(640px, 60dvh);
+    height: min(600px, 60dvh);
+    max-height: 600px;
+    max-height: min(600px, 60dvh);
     padding: 12px;
     border-radius: 22px;
   }
@@ -419,12 +421,12 @@
   }
 
   .akiii-draft-text {
-    height: 64px;
+    height: clamp(84px, 10dvh, 96px);
     min-height: 58px;
-    max-height: 72px;
+    max-height: 104px;
     padding: 10px 12px;
     border-radius: 14px;
-    font-size: 15px;
+    font-size: 14px;
   }
 
   .akiii-draft-candidate-actions {

@@ -15,8 +15,9 @@ test("candidate action buttons use one compact shared width", () => {
   assert.match(rule(".akiii-draft-panel"), /--akiii-action-button-width:\s*84px;/);
   assert.match(rule(".akiii-draft-panel"), /box-sizing:\s*border-box;/);
   assert.match(rule(".akiii-draft-panel"), /isolation:\s*isolate;/);
-  assert.match(rule(".akiii-draft-panel"), /width:\s*min\(800px,\s*calc\(100vw - 24px\)\);/);
-  assert.match(rule(".akiii-draft-panel"), /max-height:\s*min\(640px,\s*60dvh\);/);
+  assert.match(rule(".akiii-draft-panel"), /width:\s*min\(600px,\s*calc\(100vw - 24px\)\);/);
+  assert.match(rule(".akiii-draft-panel"), /height:\s*min\(600px,\s*60dvh\);/);
+  assert.match(rule(".akiii-draft-panel"), /max-height:\s*min\(600px,\s*60dvh\);/);
   assert.match(rule(".akiii-draft-panel"), /overflow:\s*hidden;/);
   assert.match(rule(".akiii-draft-candidate-body"), /grid-template-columns:\s*minmax\(0,\s*1fr\)\s+max-content;/);
   assert.match(rule(".akiii-draft-candidate-body"), /gap:\s*12px;/);
@@ -26,11 +27,13 @@ test("candidate action buttons use one compact shared width", () => {
   assert.match(text, /min-width:\s*0;/);
   assert.match(text, /max-width:\s*none;/);
   assert.match(text, /justify-self:\s*stretch;/);
-  assert.match(text, /height:\s*64px;/);
-  assert.match(text, /max-height:\s*72px;/);
+  assert.match(text, /height:\s*clamp\(84px,\s*10dvh,\s*96px\);/);
+  assert.match(text, /max-height:\s*104px;/);
   assert.match(text, /resize:\s*none;/);
   assert.match(text, /overflow:\s*auto;/);
   assert.match(text, /overflow-wrap:\s*anywhere;/);
+  assert.match(text, /font:\s*500\s+clamp\(14px,\s*\.9vw,\s*15px\)\/1\.38/);
+  assert.doesNotMatch(text, /(?:760|820|950)/);
 
   const actions = rule(".akiii-draft-candidate-actions");
   assert.match(actions, /justify-self:\s*end;/);
@@ -64,9 +67,11 @@ test("详情页元信息行里的 AI回 使用更紧凑的内联样式，时间�
   assert.match(group, /margin-bottom:\s*auto;/);
 
   const meta = rule(".akiii-ai-button.akiii-detail-meta");
-  assert.match(meta, /height:\s*24px;/);
-  assert.match(meta, /min-width:\s*50px;/);
-  assert.match(meta, /margin-left:\s*10px;/);
+  assert.match(meta, /height:\s*21px;/);
+  assert.match(meta, /min-width:\s*44px;/);
+  assert.match(meta, /margin-left:\s*8px;/);
+  assert.match(meta, /font:\s*650\s+11\.5px\/1/);
+  assert.doesNotMatch(meta, /950/);
   assert.match(meta, /vertical-align:\s*middle;/);
 });
 
