@@ -72,23 +72,38 @@ test("AI 按钮文字水平和垂直都居中（修复评论框 / 弹窗内 AI�
   assert.match(aiBtn, /display:\s*inline-flex;/);
   assert.match(aiBtn, /align-items:\s*center;/);
   assert.match(aiBtn, /justify-content:\s*center;/);
+  assert.match(aiBtn, /text-align:\s*center;/);
+  assert.match(aiBtn, /font:\s*850\s+11\.5px\/1/);
+  assert.match(aiBtn, /height:\s*24px;/);
+  assert.match(aiBtn, /min-width:\s*38px;/);
+  assert.match(aiBtn, /padding:\s*0\s+7px;/);
+  assert.match(aiBtn, /margin-left:\s*6px;/);
+  assert.match(aiBtn, /white-space:\s*nowrap;/);
 });
 
-test("详情页元信息行里的 AI回 使用更紧凑的内联样式，时间线按钮不受影响", () => {
+test("AI回 和 AI填入 使用更小的紧凑尺寸，文字仍居中显示", () => {
   const article = rule(".akiii-article");
   assert.match(article, /align-self:\s*center;/);
-  assert.match(article, /height:\s*30px;/);
-  assert.match(article, /margin:\s*0\s+0\s+0\s+8px;/);
+  assert.match(article, /height:\s*24px;/);
+  assert.match(article, /min-width:\s*42px;/);
+  assert.match(article, /margin:\s*0\s+0\s+0\s+6px;/);
+  assert.match(article, /padding:\s*0\s+8px;/);
+
+  const composer = rule(".akiii-composer");
+  assert.match(composer, /height:\s*26px;/);
+  assert.match(composer, /min-width:\s*52px;/);
+  assert.match(composer, /padding:\s*0\s+8px;/);
 
   const group = rule("[role=\"group\"] > .akiii-ai-button.akiii-article");
   assert.match(group, /margin-top:\s*auto;/);
   assert.match(group, /margin-bottom:\s*auto;/);
 
   const meta = rule(".akiii-ai-button.akiii-detail-meta");
-  assert.match(meta, /height:\s*21px;/);
-  assert.match(meta, /min-width:\s*44px;/);
-  assert.match(meta, /margin-left:\s*8px;/);
-  assert.match(meta, /font:\s*650\s+11\.5px\/1/);
+  assert.match(meta, /height:\s*20px;/);
+  assert.match(meta, /min-width:\s*38px;/);
+  assert.match(meta, /padding:\s*0\s+7px;/);
+  assert.match(meta, /margin-left:\s*6px;/);
+  assert.match(meta, /font:\s*650\s+11px\/1/);
   assert.doesNotMatch(meta, /950/);
   assert.match(meta, /vertical-align:\s*middle;/);
 });

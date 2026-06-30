@@ -123,6 +123,30 @@ test("article injection keeps the timeline button in the native action group fal
   assert.match(scan, /querySelectorAll\(ARTICLE_SELECTOR\)\]\.forEach\(injectArticleButton\)/);
 });
 
+test("article injection dedupes existing AI回 buttons before adding another one", () => {
+  const helper = functionBlock("getArticleButtons");
+  const inject = functionBlock("injectArticleButton");
+
+  assert.match(helper, /querySelectorAll\(':scope \.akiii-ai-button\.akiii-article'\)/);
+  assert.match(helper, /closestArticle\(button\) === article/);
+  assert.match(inject, /const existingButtons = getArticleButtons\(article,\s*targetHost\);/);
+  assert.match(inject, /existingButtons\.slice\(1\)\.forEach\(\(button\) => button\.remove\(\)\);/);
+  assert.match(inject, /const existing = existingButtons\[0\];/);
+});
+
+test("article injection dedupes across X virtual-list cells by status id", () => {
+  const helper = functionBlock("getArticleButtons");
+  const inject = functionBlock("injectArticleButton");
+
+  assert.match(helper, /const statusId = getStatusIdFromHref\(getStatusUrl\(article\)\);/);
+  assert.match(helper, /\[data-testid="cellInnerDiv"\]/);
+  assert.match(helper, /const buttonStatusId = button\.dataset\?\.akiiiStatusId \|\| '';/);
+  assert.match(helper, /if \(statusId && buttonStatusId && buttonStatusId !== statusId\) return;/);
+  assert.match(helper, /cell\.querySelectorAll\('\.akiii-ai-button\.akiii-article'\)/);
+  assert.match(inject, /existing\.dataset\.akiiiStatusId = getStatusIdFromHref\(getStatusUrl\(article\)\);/);
+  assert.match(inject, /btn\.dataset\.akiiiStatusId = getStatusIdFromHref\(getStatusUrl\(article\)\);/);
+});
+
 test("draft panel exposes dialog semantics without changing insert behavior", () => {
   const block = functionBlock("showDraftPanel");
 

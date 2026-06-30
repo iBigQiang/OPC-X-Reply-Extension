@@ -826,6 +826,31 @@
     });
   }
 
+  function getArticleButtons(article, targetHost) {
+    const statusId = getStatusIdFromHref(getStatusUrl(article));
+    const cell = article.closest?.('[data-testid="cellInnerDiv"]') || targetHost.closest?.('[data-testid="cellInnerDiv"]');
+    const buttons = [];
+
+    const add = (button) => {
+      if (!button || buttons.includes(button)) return;
+      const buttonStatusId = button.dataset?.akiiiStatusId || '';
+      if (statusId && buttonStatusId && buttonStatusId !== statusId) return;
+
+      const belongsToArticle = closestArticle(button) === article;
+      const belongsToTarget = button.parentElement === targetHost;
+      const belongsToCell = Boolean(cell && cell.contains(button) && (!buttonStatusId || buttonStatusId === statusId));
+      if (belongsToArticle || belongsToTarget || belongsToCell) buttons.push(button);
+    };
+
+    [...article.querySelectorAll(':scope .akiii-ai-button.akiii-article')].forEach(add);
+    [...targetHost.children].forEach((child) => {
+      if (child.matches?.('.akiii-ai-button.akiii-article')) add(child);
+    });
+    if (cell) [...cell.querySelectorAll('.akiii-ai-button.akiii-article')].forEach(add);
+
+    return buttons;
+  }
+
   function injectArticleButton(article) {
     if (!article || !isVisible(article)) return;
 
@@ -837,16 +862,20 @@
     const targetHost = detailMetaHost || actionHost;
     if (!targetHost) return;
 
-    const existing = article.querySelector(':scope .akiii-ai-button.akiii-article')
-      || [...targetHost.children].find((child) => child.matches?.('.akiii-ai-button.akiii-article'));
+    const existingButtons = getArticleButtons(article, targetHost);
+    existingButtons.slice(1).forEach((button) => button.remove());
+    const existing = existingButtons[0];
     if (existing) {
       existing.classList.toggle('akiii-detail-meta', !!detailMetaHost);
-      if (existing.parentElement !== targetHost) targetHost.insertBefore(existing, null);
+      existing.dataset.akiiiStatusId = getStatusIdFromHref(getStatusUrl(article));
+      const isCurrentTargetChild = [...targetHost.children].includes(existing);
+      if (existing.parentElement !== targetHost || !isCurrentTargetChild) targetHost.insertBefore(existing, null);
       return;
     }
 
     const btn = createButton('AI回', 'akiii-article');
     btn.classList.toggle('akiii-detail-meta', !!detailMetaHost);
+    btn.dataset.akiiiStatusId = getStatusIdFromHref(getStatusUrl(article));
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
